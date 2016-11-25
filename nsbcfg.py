@@ -19,7 +19,7 @@ cfg_all = []
 cfg_all2 = {}
 cfg_bind = {}
 pswd = ''
-action = ''               # create, update, delete
+paction = ''               # create, update, delete
 
 resourcetype_name_dict = {'server':'name', 'servicegroup':'servicegroupname', 'lbmonitor':'monitorname', 'lbvserver':"name", "csvserver":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
@@ -34,7 +34,7 @@ def resource_exist(restype, name):
     try:
         response = requests.get(nitro_config_url + restype + '/' + name, headers=json_header, verify=False, cookies=cookie)
     except (requests.ConnectionError, requests.ConnectTimeout):
-        print("Chyba pri pripojeni k serveru")
+        print("Unable to connect to the server")
         exit(1)
     if response.status_code != 200:
         return False
@@ -112,7 +112,9 @@ def load_json_cfgs():
                 if files == 'bindings':
                     cfg_bind[key] = resource_json[key]    # binding descriptions in special dict variable
                 else:
-                    cfg_all.append(resource_json)   # vsechny nactene konfigurace pridej do jedne promenne
+                    a = {key:resource_json[key]}
+                    cfg_all.append(dict(a))
+  #                  cfg_all.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
                     cfg_all2[key] = resource_json[key]    # elements description
         except:
             print("Unable to read the file", filename)
@@ -163,12 +165,13 @@ def create_update(body, action='create'):                  # it creates/updates 
     return True
 
 
-def process_json_cfgs():
-    ''' Process configuration of all items (servers,monitors,..)
+def process_json_cfgs(action = 'update'):
+    ''' Process (create/update/delete) configuration of all items (servers,monitors,..).
     '''
     for item in cfg_all:
         create_update(item, 'delete')
-        create_update(item)
+        if action == 'update' or action == 'create':
+            create_update(item)
 
 def modify_body_for_update(telo):                      # delete items in body not allowed in update message
     ''' Deletes specific items, which are not allowd in update message, from body
@@ -423,7 +426,7 @@ Usage: nsbcfg.py [OPTIONS]
 '''
 
 try:
-    opts, args = getopt.getopt(argv, "hpu:i:c:a:", ["help","password=", "username=", "ipaddr=", "cfgfile=", "action="])
+    opts, args = getopt.getopt(argv, "hpu:i:c:a:", ["help", "password=", "username=", "ipaddr=", "cfgfile=", "action="])
 except getopt.GetoptError:
     print(usage_str)
     sys.exit(2)
@@ -440,11 +443,11 @@ for opt, arg in opts:
     elif opt in ("-c", "--cfgfile"):
         config_file = arg
     elif opt in ("-a", "--action"):
-        action = arg
+        paction = arg
 
 
-if action not in ['create', 'update', 'delete', 'c', 'u', 'd']:
-    print("Wrong action argument", action)
+if paction not in ['create', 'update', 'delete', 'c', 'u', 'd']:
+    print("Wrong action argument", paction)
     print(usage_str)
     sys.exit(2)
 
@@ -472,7 +475,7 @@ if not get_cookie(username, pswd):
 
 load_json_cfgs()
 
-if action in ['create', 'update', 'c', 'u']:
+if paction in ['create', 'update', 'c', 'u']:
 
     unbind_all_from_csvs()
 
@@ -487,6 +490,11 @@ if action in ['create', 'update', 'c', 'u']:
     bind_all_lbvs()
 
     bind_all_csvs()
+elif paction in ['delete', 'd']:
+    unbind_all_from_csvs()
+    unbind_all_from_lbvs()
+    unbind_all_from_lbsg()
+    process_json_cfgs('delete')
 
 
 
