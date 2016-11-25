@@ -479,6 +479,7 @@ if paction in ['create', 'update', 'c', 'u']:
 
     unbind_all_from_csvs()
     unbind_all_from_lbvs()
+    
     unbind_all_from_lbsg()
 
     process_json_cfgs()
@@ -486,7 +487,7 @@ if paction in ['create', 'update', 'c', 'u']:
     bind_all_lbsg()
     bind_all_lbvs()
     bind_all_csvs()
-    
+
 elif paction in ['delete', 'd']:
     unbind_all_from_csvs()
     unbind_all_from_lbvs()
