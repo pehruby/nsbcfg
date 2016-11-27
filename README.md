@@ -1,4 +1,4 @@
 # nsbcfg
 Netscaler batch configuration
 
-My firsts Python script ;)
+My first Python script ;)
