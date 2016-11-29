@@ -4,28 +4,39 @@ import sys
 import json
 import getpass
 import os
-import requests
 import getopt
+import requests
 
 
 requests.packages.urllib3.disable_warnings()
 
-ns_ip = "10.178.188.149"
+ns_ip = ""
 nitro_config_path = '/nitro/v1/config/'
 cookie = {}
 json_header = {'Content-type': 'application/json'}
 config_file = 'nsconfig.json'
-cfg_all = []
-cfg_all2 = {}
+cfg_all = []        # list
+cfg_all2 = {}       # set
 cfg_bind = {}
 pswd = ''
 paction = ''               # create, update, delete
 
-resourcetype_name_dict = {'server':'name', 'servicegroup':'servicegroupname', 'lbmonitor':'monitorname', 'lbvserver':"name", "csvserver":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
-update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
+resourcetype_name_dict = {'server':'name', \
+                            'servicegroup':'servicegroupname', \
+                            'lbmonitor':'monitorname', \
+                            'lbvserver':"name", \
+                            "csvserver":"name", \
+                            "cspolicy":"policyname", \
+                            "rewritepolicy":"name", \
+                            "rewriteaction":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
+resourcetype_list = ["rewriteaction", "rewritepolicy", "cspolicy", "csvserver", \
+                    "lbvserver", "servicegroup", "server", "lbmonitor"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+
+update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
+                        "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
 vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname"}
-cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver"}           # name of binded item in CSVS
+cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname"}           # name of binded item in CSVS
 
 def resource_exist(restype, name):
     ''' Check if resource already exists
@@ -107,18 +118,20 @@ def load_json_cfgs():
             filename = str((config_json[files]['filename']))      # nacti konfiguracni .json soubor pro danou polozku, napr. server.json
             with open(filename) as data_file:
                 resource_json = json.loads(data_file.read())
-            # key = list(resource_json.keys())[0]
-            for key in list(resource_json.keys()):
-                if files == 'bindings':
-                    cfg_bind[key] = resource_json[key]    # binding descriptions in special dict variable
-                else:
-                    a = {key:resource_json[key]}
-                    cfg_all.append(dict(a))
-  #                  cfg_all.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
-                    cfg_all2[key] = resource_json[key]    # elements description
         except:
             print("Unable to read the file", filename)
             exit(1)
+
+        if files == 'bindings':
+            for key in list(resource_json.keys()):
+                cfg_bind[key] = resource_json[key]    # binding descriptions in special dict variable
+        else:
+            for restype in resourcetype_list:
+                if restype in resource_json.keys():
+                    a = {restype:resource_json[restype]}
+                    cfg_all.append(dict(a))
+                    #                  cfg_all.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
+                    cfg_all2[restype] = resource_json[restype]      # elements description
     return True
 
 def create_update(body, action='create'):                  # it creates/updates or deletes items defined in nsconfig.json
@@ -165,12 +178,13 @@ def create_update(body, action='create'):                  # it creates/updates 
     return True
 
 
-def process_json_cfgs(action = 'update'):
+def process_json_cfgs(action='update'):
     ''' Process (create/update/delete) configuration of all items (servers,monitors,..).
     '''
-    for item in cfg_all:
+    for item in reversed(cfg_all):
         create_update(item, 'delete')
-        if action == 'update' or action == 'create':
+    if action == 'update' or action == 'create':
+        for item in cfg_all:
             create_update(item)
 
 def modify_body_for_update(telo):                      # delete items in body not allowed in update message
@@ -224,20 +238,37 @@ def bind_one_csvs(onecsvs):
     ''' Binds all objects to one CS VS
     '''
 
-    for item in onecsvs['csvserver_lbvserver_binding']:     # bind default LBVS to CSVS
-        body = {'csvserver_lbvserver_binding' : item}
-        try:
-            print("Binding", item['lbvserver'], "to", item['name'])
-            response = requests.put(nitro_config_url + 'csvserver_lbvserver_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
-        except (requests.ConnectionError, requests.ConnectTimeout):
-            print("Chyba pri pripojeni k serveru")
-            exit(1)
-        if response.status_code != 200:
-            print("Chyba pri bindingu default LBVS na CSVS", "http status kod:", response.status_code)
-            print("Response text", response.text)
-            return False
-        else:
-            print("Successfuly binded", item['lbvserver'], "to", item['name'])
+    if 'csvserver_lbvserver_binding' in onecsvs:
+        for item in onecsvs['csvserver_lbvserver_binding']:     # bind default LBVS to CSVS
+            body = {'csvserver_lbvserver_binding' : item}
+            try:
+                print("Binding", item['lbvserver'], "to", item['name'])
+                response = requests.put(nitro_config_url + 'csvserver_lbvserver_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu default LBVS na CSVS", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['lbvserver'], "to", item['name'])
+
+    if 'csvserver_cspolicy_binding' in onecsvs:
+        for item in onecsvs['csvserver_cspolicy_binding']:     # bind policies to CSVS
+            body = {'csvserver_cspolicy_binding' : item}
+            try:
+                print("Binding", item['policyname'], "to", item['name'])
+                response = requests.put(nitro_config_url + 'csvserver_cspolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu policy na CSVS", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['policyname'], "to", item['name'])
 
     return True
 
