@@ -29,9 +29,10 @@ resourcetype_name_dict = {'server':'name', \
                             "cspolicy":"policyname", \
                             "rewritepolicy":"name", \
                             "rewriteaction":"name", \
-                            "sslprofile":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
+                            "sslprofile":"name",
+                            "service":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
 resourcetype_list = ["rewriteaction", "rewritepolicy", "sslprofile", "cspolicy", "csvserver", \
-                    "lbvserver", "servicegroup", "server", "lbmonitor"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                    "lbvserver", "servicegroup", "server", "lbmonitor","service"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
@@ -155,10 +156,10 @@ def create_update(body, action='create'):                  # it creates/updates 
         print("Type:", typ, "name:", name)
         exists = False
         if resource_exist(typ, name):
-            print("Type:", typ, "name:", name, "already exists")
+            print("Type:", typ, "name:", name, "exists")
             exists = True
         else:
-            print("Type:", typ, "name:", name, "doesn't exist so far")
+            print("Type:", typ, "name:", name, "doesn't exist")
        # try:
         if action == 'create' and not exists:
             #print("Creating", typ, name)
@@ -192,6 +193,24 @@ def process_json_cfgs(action='update'):
     if action == 'update' or action == 'create':
         for item in cfg_all:
             create_update(item)
+
+def check_if_items_exist():
+    ''' Check if items in cfg file (servers,monitors,..) already exist.
+    '''
+    exists = False
+    for item in cfg_all:
+        typ = list(item.keys())[0]
+        res_type_name = resourcetype_name_dict[typ]   # what is the name of "name" field in this type ?
+        for subitem in item[typ]:             # go through every item of specific type
+            # name=str(body[typ][0]['name'])          #  resource name
+            name = str(subitem[res_type_name])          #  resource name
+            action_body = {}
+            action_body[typ] = item                   #body with one item
+            if resource_exist(typ, name):
+                print("Resource type:", typ, "name:", name, "exists")
+                exists = True
+    return exists
+
 
 def modify_body_for_update(telo):                      # delete items in body not allowed in update message
     ''' Deletes specific items, which are not allowed in update message, from body
@@ -424,6 +443,21 @@ def bind_one_lbvs(onelbvs):
         else:
             print("Successfuly binded", item['servicegroupname'], "to", item['name'])
 
+    for item in onelbvs['lbvserver_service_binding']:     # bind all services to LBVS
+        body = {'lbvserver_service_binding' : item}
+        try:
+            print("Binding", item['servicename'], "to", item['name'])
+            response = requests.put(nitro_config_url + 'lbvserver_service_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+        except (requests.ConnectionError, requests.ConnectTimeout):
+            print("Chyba pri pripojeni k serveru")
+            exit(1)
+        if response.status_code != 200:
+            print("Chyba pri bindingu service", "http status kod:", response.status_code)
+            print("Response text", response.text)
+            return False
+        else:
+            print("Successfuly binded", item['servicename'], "to", item['name'])
+
     return True
 
 
@@ -600,6 +634,12 @@ if not get_cookie(username, pswd):
 
 
 load_json_cfgs()
+
+if paction in ['create', 'c']:
+    if check_if_items_exist():
+        print("Option \"create\" is specified but some resources already exist !")
+        sys.exit(2)
+
 
 if paction in ['create', 'update', 'c', 'u']:
 
