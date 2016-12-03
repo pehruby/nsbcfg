@@ -28,15 +28,18 @@ resourcetype_name_dict = {'server':'name', \
                             "csvserver":"name", \
                             "cspolicy":"policyname", \
                             "rewritepolicy":"name", \
-                            "rewriteaction":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
-resourcetype_list = ["rewriteaction", "rewritepolicy", "cspolicy", "csvserver", \
+                            "rewriteaction":"name", \
+                            "sslprofile":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
+resourcetype_list = ["rewriteaction", "rewritepolicy", "sslprofile", "cspolicy", "csvserver", \
                     "lbvserver", "servicegroup", "server", "lbmonitor"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
 vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname"}
-cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname"}           # name of binded item in CSVS
+cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname", \
+                         "csvserver_rewritepolicy_binding":"name"}           # name of binded item in CSVS
+sslvs_parametr_name_dict = {"sslvserver_ecccurve_binding":"ecccurvename", "sslvserver_sslcertkey_binding":"certkeyname"}
 
 def resource_exist(restype, name):
     ''' Check if resource already exists
@@ -110,7 +113,7 @@ def load_json_cfgs():
         try:
             with open(config_file) as data_file:
                 config_json = json.loads(data_file.read())
-        except:
+        except IOError:
             print("Unable to read the file", config_file)
             exit(1)
     for files in config_json:              # projdi vsechny polozky z nsconfig.json
@@ -118,7 +121,10 @@ def load_json_cfgs():
             filename = str((config_json[files]['filename']))      # nacti konfiguracni .json soubor pro danou polozku, napr. server.json
             with open(filename) as data_file:
                 resource_json = json.loads(data_file.read())
-        except:
+        except ValueError:
+            print("Unable to process the file", filename, ", syntax error?")
+            exit(1)
+        except IOError:
             print("Unable to read the file", filename)
             exit(1)
 
@@ -188,7 +194,7 @@ def process_json_cfgs(action='update'):
             create_update(item)
 
 def modify_body_for_update(telo):                      # delete items in body not allowed in update message
-    ''' Deletes specific items, which are not allowd in update message, from body
+    ''' Deletes specific items, which are not allowed in update message, from body
     '''
     restyp = list(telo.keys())[0]
     if restyp in update_body_del_dict:                 # je tento typ v tabulce, tj. je treba potencialne neco odstranovat ?
@@ -196,7 +202,81 @@ def modify_body_for_update(telo):                      # delete items in body no
             if polozka in telo[restyp]:                # je tato polozka v tele ?
                 del telo[restyp][polozka]                       # odstran ji
 
-# dodelat test, jestli CSVS jiz vubec existuje
+def bind_all_sslvs():
+    ''' Binds all SSL parametrers to CSVSs
+    '''
+
+    global cfg_bind
+
+    for item in cfg_bind['sslvserver_binding']:
+        bind_one_sslvs(item)
+
+def bind_one_sslvs(onesslvs):
+    ''' Binds all SSL objects to one CS VSs
+    '''
+    if 'sslvserver_ecccurve_binding' in onesslvs:
+        for item in onesslvs['sslvserver_ecccurve_binding']:     # bind default LBVS to CSVS
+            body = {'sslvserver_ecccurve_binding' : item}
+            try:
+                print("Binding", item['vservername'], "to", item['ecccurvename'])
+                response = requests.put(nitro_config_url + 'sslvserver_ecccurve_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu ECC curve na CSVS", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['vservername'], "to", item['ecccurvename'])
+
+    if 'sslvserver_sslcertkey_binding' in onesslvs:
+        for item in onesslvs['sslvserver_sslcertkey_binding']:     # bind default LBVS to CSVS
+            body = {'sslvserver_sslcertkey_binding' : item}
+            try:
+                print("Binding", item['vservername'], "to", item['certkeyname'])
+                response = requests.put(nitro_config_url + 'sslvserver_sslcertkey_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu certkey na CSVS", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['vservername'], "to", item['certkeyname'])
+
+
+
+def unbind_all_from_sslvs():
+    ''' Unbinds all objects from all CS VSs
+    '''
+
+    for csvs in cfg_all2['csvserver']:
+        if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
+            print("SSLVS unbind:", csvs['name'])
+            response = requests.get(nitro_config_url + 'sslvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
+            if response.status_code != 200:
+                print("Chyba pri GET csvserver_binding", csvs['csvserver'])
+                return False
+            body_json = json.loads(response.text)
+            ssl_bindings = body_json['sslvserver_binding']
+            for key, value in dict.items(ssl_bindings[0]):
+                if sslvs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
+                    for subitem in ssl_bindings[0][key]:     # projed vsechny cleny dane polozky
+                        subitem_name = subitem[sslvs_parametr_name_dict[key]]    # jmeno konkretni polozky
+                        add_param = ''
+                        print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
+                        response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + sslvs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                        if response.status_code != 200:
+                            print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                            print("Response text", response.text)
+                            return False
+                        else:
+                            print(key, subitem_name, "successfuly unbinded")
+        print("Konec SSLVS unbind:", csvs['name'])
+
+
 def unbind_all_from_csvs():
     ''' Unbinds all objects from all CS VSs
     '''
@@ -255,7 +335,7 @@ def bind_one_csvs(onecsvs):
                 print("Successfuly binded", item['lbvserver'], "to", item['name'])
 
     if 'csvserver_cspolicy_binding' in onecsvs:
-        for item in onecsvs['csvserver_cspolicy_binding']:     # bind policies to CSVS
+        for item in onecsvs['csvserver_cspolicy_binding']:     # bind CS policies to CSVS
             body = {'csvserver_cspolicy_binding' : item}
             try:
                 print("Binding", item['policyname'], "to", item['name'])
@@ -270,6 +350,21 @@ def bind_one_csvs(onecsvs):
             else:
                 print("Successfuly binded", item['policyname'], "to", item['name'])
 
+    if 'csvserver_rewritepolicy_binding' in onecsvs:
+        for item in onecsvs['csvserver_rewritepolicy_binding']:     # bind rewrite policies to CSVS
+            body = {'csvserver_rewritepolicy_binding' : item}
+            try:
+                print("Binding", item['policyname'], "to", item['name'])
+                response = requests.put(nitro_config_url + 'csvserver_rewritepolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu rewrite policy na CSVS", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['policyname'], "to", item['name'])
     return True
 
 
@@ -508,6 +603,7 @@ load_json_cfgs()
 
 if paction in ['create', 'update', 'c', 'u']:
 
+    unbind_all_from_sslvs()
     unbind_all_from_csvs()
     unbind_all_from_lbvs()
     
@@ -518,8 +614,11 @@ if paction in ['create', 'update', 'c', 'u']:
     bind_all_lbsg()
     bind_all_lbvs()
     bind_all_csvs()
+    bind_all_sslvs()
 
 elif paction in ['delete', 'd']:
+
+    unbind_all_from_sslvs()
     unbind_all_from_csvs()
     unbind_all_from_lbvs()
     unbind_all_from_lbsg()
