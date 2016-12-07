@@ -39,7 +39,7 @@ update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["serv
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
 vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname"}
 cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname", \
-                         "csvserver_rewritepolicy_binding":"name"}           # name of binded item in CSVS
+                         "csvserver_rewritepolicy_binding":"policyname"}           # name of binded item in CSVS
 sslvs_parametr_name_dict = {"sslvserver_ecccurve_binding":"ecccurvename", "sslvserver_sslcertkey_binding":"certkeyname"}
 
 def resource_exist(restype, name):
@@ -287,11 +287,11 @@ def unbind_all_from_sslvs():
                             debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
                             response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + sslvs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
                             if response.status_code != 200:
-                                print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                                print("Chyba pri SSLVS unbind", key, subitem_name, "http status kod:", response.status_code)
                                 print("Response text", response.text)
                                 return False
                             else:
-                                print(sslvs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
+                                print("SSLVS unbind:", sslvs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
             else:
                 None
                 #print("Chyba pri GET csvserver_binding", csvs['csvserver'])
@@ -320,11 +320,11 @@ def unbind_all_from_csvs():
                         debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
                         response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + cs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
                         if response.status_code != 200:
-                            print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                            print("Chyba pri CSVS unbind", key, subitem_name, "http status kod:", response.status_code)
                             print("Response text", response.text)
                             return False
                         else:
-                            print(cs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
+                            print("CSVS unbind:", cs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
         debug_print("Konec CSVS unbind:", csvs['name'])
 
 def bind_all_csvs():
@@ -416,7 +416,7 @@ def unbind_all_from_lbvs():
                             print("Response text", response.text)
                             return False
                         else:
-                            print(vs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbvs['name'])
+                            print("LBVS unbind:", vs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbvs['name'])
         debug_print("Konec LBVS unbind:", lbvs['name'])
 
 def bind_all_lbvs():
@@ -497,7 +497,7 @@ def unbind_all_from_lbsg():                            # unbind all items (monit
                             print("Response text", response.text)
                             return False
                         else:
-                            print(sg_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbsg['servicegroupname'])
+                            print("LBSG unbind:", sg_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbsg['servicegroupname'])
         debug_print("Konec LBSG unbind:", lbsg['servicegroupname'])
 
 def bind_all_lbsg():
@@ -513,35 +513,37 @@ def bind_one_lbsg(onelbsg):
     ''' Binds one objects to all LB SGs
     '''
 
-    for item in onelbsg['servicegroup_servicegroupmember_binding']:     # bind all servers to LBSG
-        body = {'servicegroup_servicegroupmember_binding' : item}
-        try:
-            debug_print("Binding", item['servername'], "to", item['servicegroupname'])
-            response = requests.put(nitro_config_url + 'servicegroup_servicegroupmember_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
-        except (requests.ConnectionError, requests.ConnectTimeout):
-            print("Chyba pri pripojeni k serveru")
-            exit(1)
-        if response.status_code != 200:
-            print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
-            print("Response text", response.text)
-            return False
-        else:
-            print("Successfuly binded", item['servername'], "to", item['servicegroupname'])
+    if 'servicegroup_servicegroupmember_binding' in onelbsg:
+        for item in onelbsg['servicegroup_servicegroupmember_binding']:     # bind all servers to LBSG
+            body = {'servicegroup_servicegroupmember_binding' : item}
+            try:
+                debug_print("Binding", item['servername'], "to", item['servicegroupname'])
+                response = requests.put(nitro_config_url + 'servicegroup_servicegroupmember_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['servername'], "to", item['servicegroupname'])
 
-    for item in onelbsg['servicegroup_lbmonitor_binding']:     # bind all monitors to LBSG
-        body = {'servicegroup_lbmonitor_binding' : item}
-        try:
-            debug_print("Binding", item['monitor_name'], "to", item['servicegroupname'])
-            response = requests.put(nitro_config_url + 'servicegroup_lbmonitor_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
-        except (requests.ConnectionError, requests.ConnectTimeout):
-            print("Chyba pri pripojeni k serveru")
-            exit(1)
-        if response.status_code != 200:
-            print("Chyba pri bindingu monitoru", "http status kod:", response.status_code)
-            print("Response text", response.text)
-            return False
-        else:
-            print("Successfuly binded", item['monitor_name'], "to", item['servicegroupname'])
+    if 'servicegroup_lbmonitor_binding' in onelbsg:
+        for item in onelbsg['servicegroup_lbmonitor_binding']:     # bind all monitors to LBSG
+            body = {'servicegroup_lbmonitor_binding' : item}
+            try:
+                debug_print("Binding", item['monitor_name'], "to", item['servicegroupname'])
+                response = requests.put(nitro_config_url + 'servicegroup_lbmonitor_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu monitoru", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['monitor_name'], "to", item['servicegroupname'])
     return True
 
 
@@ -609,11 +611,11 @@ except getopt.GetoptError:
     print(usage_str)
     sys.exit(2)
 for opt, arg in opts:
-    if opt in ("-h","--help"):
+    if opt in ("-h", "--help"):
         print(usage_str)
         sys.exit()
     elif opt in ("-d", "--debug"):
-        debug=True
+        debug = True
     elif opt in ("-u", "--username"):
         username = arg
     elif opt in ("-i", "--ipaddr"):
