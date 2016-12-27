@@ -37,6 +37,7 @@ resourcetype_list = ["rewriteaction", "rewritepolicy", "sslprofile", "cspolicy",
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
+svc_parametr_name_dict = {"service_lbmonitor_binding":"monitor_name"}
 vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname"}
 cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname", \
                          "csvserver_rewritepolicy_binding":"policyname"}           # name of binded item in CSVS
@@ -472,33 +473,34 @@ def unbind_all_from_lbsg():                            # unbind all items (monit
     ''' Unbinds all objects from all LB SGs
     '''
 
-    for lbsg in cfg_all2['servicegroup']:
-        if resource_exist('servicegroup', lbsg['servicegroupname']):     # does specific LBSG already exist ?
-            debug_print("LBSG unbind:", lbsg['servicegroupname'])
-            response = requests.get(nitro_config_url + 'servicegroup_binding/' + lbsg['servicegroupname'], headers=json_header, verify=False, cookies=cookie)
-            if response.status_code != 200:
-                print("Chyba pri GET servicegroupbindings", lbsg['servicegroupname'])
-                return False
-            body_json = json.loads(response.text)
-            sg_bindings = body_json['servicegroup_binding']
-            for key, value in dict.items(sg_bindings[0]):
-                # index=list(item.keys())[0]
-                if sg_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku (monitory, server membery)
-                #if key != 'servicegroupname' :    # preskoc polozku "servicegroupname"
-                    for subitem in sg_bindings[0][key]:     # projed vsechny cleny dane polozky (monitory, membery)
-                        subitem_name = subitem[sg_parametr_name_dict[key]]    # jmeno konkretni polozky (monitor, server)
-                        add_param = ''
-                        if key == 'servicegroup_servicegroupmember_binding':   # server member?
-                            add_param = ',port:' + str(subitem['port'])         # jeste pridat parametr 'port' do URL
-                        debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze LB service groupy
-                        response = requests.delete(nitro_config_url + key + '/' + lbsg['servicegroupname'] + '?args=' + sg_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
-                        if response.status_code != 200:
-                            print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
-                            print("Response text", response.text)
-                            return False
-                        else:
-                            print("LBSG unbind:", sg_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbsg['servicegroupname'])
-        debug_print("Konec LBSG unbind:", lbsg['servicegroupname'])
+    if 'servicegroup' in cfg_all2:
+        for lbsg in cfg_all2['servicegroup']:
+            if resource_exist('servicegroup', lbsg['servicegroupname']):     # does specific LBSG already exist ?
+                debug_print("LBSG unbind:", lbsg['servicegroupname'])
+                response = requests.get(nitro_config_url + 'servicegroup_binding/' + lbsg['servicegroupname'], headers=json_header, verify=False, cookies=cookie)
+                if response.status_code != 200:
+                    print("Chyba pri GET servicegroupbindings", lbsg['servicegroupname'])
+                    return False
+                body_json = json.loads(response.text)
+                sg_bindings = body_json['servicegroup_binding']
+                for key, value in dict.items(sg_bindings[0]):
+                    # index=list(item.keys())[0]
+                    if sg_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku (monitory, server membery)
+                    #if key != 'servicegroupname' :    # preskoc polozku "servicegroupname"
+                        for subitem in sg_bindings[0][key]:     # projed vsechny cleny dane polozky (monitory, membery)
+                            subitem_name = subitem[sg_parametr_name_dict[key]]    # jmeno konkretni polozky (monitor, server)
+                            add_param = ''
+                            if key == 'servicegroup_servicegroupmember_binding':   # server member?
+                                add_param = ',port:' + str(subitem['port'])         # jeste pridat parametr 'port' do URL
+                            debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze LB service groupy
+                            response = requests.delete(nitro_config_url + key + '/' + lbsg['servicegroupname'] + '?args=' + sg_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                            if response.status_code != 200:
+                                print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                                print("Response text", response.text)
+                                return False
+                            else:
+                                print("LBSG unbind:", sg_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbsg['servicegroupname'])
+            debug_print("Konec LBSG unbind:", lbsg['servicegroupname'])
 
 def bind_all_lbsg():
     ''' Binds all objects to all LB SGs
@@ -506,8 +508,9 @@ def bind_all_lbsg():
 
     global cfg_bind
 
-    for item in cfg_bind['servicegroup_binding']:
-        bind_one_lbsg(item)
+    if 'servicegroup_binding' in cfg_bind:
+        for item in cfg_bind['servicegroup_binding']:
+            bind_one_lbsg(item)
 
 def bind_one_lbsg(onelbsg):
     ''' Binds one objects to all LB SGs
@@ -546,6 +549,65 @@ def bind_one_lbsg(onelbsg):
                 print("Successfuly binded", item['monitor_name'], "to", item['servicegroupname'])
     return True
 
+def bind_all_lbsvc():
+    ''' Binds all objects to all LB Services
+    '''
+
+    global cfg_bind
+
+    if 'service_binding' in cfg_bind:
+        for item in cfg_bind['service_binding']:
+            bind_one_lbsvc(item)
+
+def bind_one_lbsvc(onelbsg):
+    ''' Binds one objects to all LB Services
+    '''
+
+    if 'service_lbmonitor_binding' in onelbsg:
+        for item in onelbsg['service_lbmonitor_binding']:
+            body = {'service_lbmonitor_binding' : item}
+            try:
+                debug_print("Binding", item['monitor_name'], "to", item['name'])
+                response = requests.put(nitro_config_url + 'service_lbmonitor_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['monitor_name'], "to", item['name'])
+    return True
+
+def unbind_all_from_lbsvc():                            # unbind all items (monitors, servers) binded to LB service
+    ''' Unbinds all objects from all LB SVCs
+    '''
+
+    if 'service' in cfg_all2:
+        for lbsvc in cfg_all2['service']:
+            if resource_exist('service', lbsvc['name']):     # does specific LBSG already exist ?
+                debug_print("LBSVC unbind:", lbsvc['name'])
+                response = requests.get(nitro_config_url + 'service_binding/' + lbsvc['name'], headers=json_header, verify=False, cookies=cookie)
+                if response.status_code != 200:
+                    print("Chyba pri GET service_bindings", lbsvc['name'])
+                    return False
+                body_json = json.loads(response.text)
+                svc_bindings = body_json['service_binding']
+                for key, value in dict.items(svc_bindings[0]):
+                    if svc_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku (monitory, server membery)
+                        for subitem in svc_bindings[0][key]:     # projed vsechny cleny dane polozky (monitory, membery)
+                            subitem_name = subitem[svc_parametr_name_dict[key]]    # jmeno konkretni polozky (monitor, server)
+                            add_param = ''
+                            debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze LB service
+                            response = requests.delete(nitro_config_url + key + '/' + lbsvc['name'] + '?args=' + svc_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                            if response.status_code != 200:
+                                print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                                print("Response text", response.text)
+                                return False
+                            else:
+                                print("LBSVC unbind:", svc_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbsvc['name'])
+            debug_print("Konec LBSVC unbind:", lbsvc['name'])
 
 def is_ip_valid(testedip):
     ''' Test if string is valid IP address
@@ -668,11 +730,13 @@ if paction in ['create', 'update', 'c', 'u']:
     unbind_all_from_sslvs()
     unbind_all_from_csvs()
     unbind_all_from_lbvs()
+    unbind_all_from_lbsvc()
     unbind_all_from_lbsg()
 
     process_json_cfgs()
 
     bind_all_lbsg()
+    bind_all_lbsvc()
     bind_all_lbvs()
     bind_all_csvs()
     bind_all_sslvs()
@@ -682,6 +746,7 @@ elif paction in ['delete', 'd']:
     unbind_all_from_sslvs()
     unbind_all_from_csvs()
     unbind_all_from_lbvs()
+    unbind_all_from_lbsvc()
     unbind_all_from_lbsg()
     process_json_cfgs('delete')
 
