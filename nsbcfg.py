@@ -29,11 +29,13 @@ resourcetype_name_dict = {'server':'name', \
                             "cspolicy":"policyname", \
                             "rewritepolicy":"name", \
                             "rewriteaction":"name", \
-                            "sslprofile":"name",
-                            "service":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
+                            "sslprofile":"name",\
+                            "service":"name",\
+                            "lbgroup":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
 resourcetype_list = ["rewriteaction", "rewritepolicy", "sslprofile", "cspolicy", "csvserver", \
-                    "lbvserver", "servicegroup", "server", "lbmonitor","service"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                    "lbvserver", "servicegroup", "server", "lbmonitor", "service","lbgroup"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
+dont_process_at_beg_list = ["lbgroup"]      # don't create this resources at the beginning 
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
@@ -42,6 +44,16 @@ vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname"}
 cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname", \
                          "csvserver_rewritepolicy_binding":"policyname"}           # name of binded item in CSVS
 sslvs_parametr_name_dict = {"sslvserver_ecccurve_binding":"ecccurvename", "sslvserver_sslcertkey_binding":"certkeyname"}
+general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
+                                "servicegroup_servicegroupmember_binding":"servername",\
+                                "service_lbmonitor_binding":"monitor_name",\
+                                "lbvserver_servicegroup_binding":"servicegroupname",\
+                                "csvserver_lbvserver_binding":"lbvserver",\
+                                "csvserver_cspolicy_binding":"policyname",\
+                                "csvserver_rewritepolicy_binding":"policyname",\
+                                "sslvserver_ecccurve_binding":"ecccurvename",\
+                                "sslvserver_sslcertkey_binding":"certkeyname",\
+                                "lbgroup_lbvserver_binding":"vservername"}
 
 def resource_exist(restype, name):
     ''' Check if resource already exists
@@ -190,10 +202,22 @@ def process_json_cfgs(action='update'):
     ''' Process (create/update/delete) configuration of all items (servers,monitors,..).
     '''
     for item in reversed(cfg_all):
-        create_update(item, 'delete')
+        if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
+            create_update(item, 'delete')
     if action == 'update' or action == 'create':
         for item in cfg_all:
-            create_update(item)
+            if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
+                create_update(item)
+
+def process_one_item_from_cfgs(item_type, action):
+    ''' Process (create/update/delete) one item type (servers,monitors,..) from config file.
+    '''
+
+    if item_type in cfg_all2.keys():                    # does item type exist in cfg?
+        body = {item_type : cfg_all2[item_type]}
+        create_update(body, action)
+
+
 
 def check_if_items_exist():
     ''' Check if items in cfg file (servers,monitors,..) already exist.
@@ -609,6 +633,65 @@ def unbind_all_from_lbsvc():                            # unbind all items (moni
                                 print("LBSVC unbind:", svc_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbsvc['name'])
             debug_print("Konec LBSVC unbind:", lbsvc['name'])
 
+def bind_general(name):
+    ''' Process binding for specified item (i.e. name lbgroup process lbgroup_binding subtree)
+    '''
+
+    global cfg_bind
+
+    subtree_name = name + '_binding'
+    if subtree_name in cfg_bind:
+        for subtree in cfg_bind[subtree_name]:      # go through each item of specified subtree, i.e through all lbgroup
+            actname = subtree.get("name")
+            for (key, value) in subtree.items():           # key is name of "binding function" with exception of "name"
+                if key == "name":
+                    continue            # process next key
+                for cfgbody in value:            # go through each json body which will be binded
+                    body = {key : cfgbody}         # create proper format of json body
+                    try:
+                        debug_print("Binding", cfgbody[general_parametr_name_dict[key]], "to", actname)
+                        response = requests.put(nitro_config_url + key, headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+                    except (requests.ConnectionError, requests.ConnectTimeout):
+                        print("Chyba pri pripojeni k serveru")
+                        exit(1)
+                    if response.status_code != 200:
+                        print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
+                        print("Response text", response.text)
+                        return False
+                    else:
+                        print("Successfuly binded", cfgbody[general_parametr_name_dict[key]], "to", actname)
+
+def unbind_general(unb_name):
+    ''' Process unbinding for specified item (i.e. unb_name lbgroup process unbinding of lbgroup_binding subtree)
+    '''
+
+    subtree_name = unb_name + '_binding'
+
+    if unb_name in cfg_all2:
+        for item in cfg_all2[unb_name]:
+            if resource_exist(unb_name, item["name"]):       # resource type, name
+                debug_print(unb_name, "unbind:", item['name'])
+                response = requests.get(nitro_config_url + subtree_name + '/' + item['name'], headers=json_header, verify=False, cookies=cookie)
+                if response.status_code != 200:
+                    print("Chyba pri GET service_bindings", item['name'])
+                    return False
+                body_json = json.loads(response.text)
+                gen_bindings = body_json[subtree_name]
+                for key, value in gen_bindings[0].items():      # go through each item (section) of specific binding
+                    if general_parametr_name_dict.get(key) != None: # only items defined in dictionary (monitory, server membery)
+                        for subitem in gen_bindings[0][key]:     # projed vsechny cleny dane polozky (monitory, membery)
+                            subitem_name = subitem[general_parametr_name_dict[key]]    # jmeno konkretni polozky (monitor, server)
+                            add_param = ''
+                            debug_print("Unbinding", key, subitem_name)
+                            response = requests.delete(nitro_config_url + key + '/' + item['name'] + '?args=' + general_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                            if response.status_code != 200:
+                                print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                                print("Response text", response.text)
+                                return False
+                            else:
+                                print("unbind:", general_parametr_name_dict[key], subitem_name, "successfuly unbinded from", item['name'])
+                debug_print("Konec", unb_name, "unbind:", item['name'])
+
 def is_ip_valid(testedip):
     ''' Test if string is valid IP address
     '''
@@ -732,14 +815,17 @@ if paction in ['create', 'update', 'c', 'u']:
     unbind_all_from_lbvs()
     unbind_all_from_lbsvc()
     unbind_all_from_lbsg()
+    unbind_general("lbgroup")
 
     process_json_cfgs()
 
+    bind_general("lbgroup")
     bind_all_lbsg()
     bind_all_lbsvc()
     bind_all_lbvs()
     bind_all_csvs()
     bind_all_sslvs()
+    process_one_item_from_cfgs('lbgroup', 'update')
 
 elif paction in ['delete', 'd']:
 
