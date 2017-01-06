@@ -94,7 +94,7 @@ def create_update_delete_resource(restype, name, body, action='delete'):
         print("Response text", response.text)
         return False
     else:
-        print(restype, name, "successfuly", action+"d")
+        print("Successfuly", action+"d", restype, name)
 
     return True
 
@@ -130,6 +130,9 @@ def load_json_cfgs():
         except IOError:
             print("Unable to read the file", config_file)
             exit(1)
+    else:
+        print("Cannot find the file", config_file)
+        exit(1)
     for files in config_json:              # projdi vsechny polozky z nsconfig.json
         try:
             filename = str((config_json[files]['filename']))      # nacti konfiguracni .json soubor pro danou polozku, napr. server.json
@@ -834,6 +837,7 @@ elif paction in ['delete', 'd']:
     unbind_all_from_lbvs()
     unbind_all_from_lbsvc()
     unbind_all_from_lbsg()
+    unbind_general("lbgroup")
     process_json_cfgs('delete')
 
 
