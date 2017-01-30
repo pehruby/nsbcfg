@@ -15,11 +15,18 @@ nitro_config_path = '/nitro/v1/config/'
 cookie = {}
 json_header = {'Content-type': 'application/json'}
 config_file = 'nsconfig.json'
-cfg_all = []        # list
-cfg_all2 = {}       # set
+cfg_all_list = []        # list
+cfg_all_set = {}       # set
 cfg_bind = {}
 pswd = ''
 paction = ''               # create, update, delete
+
+# the following variables are arrays/lists containing json configuration from several files, each array entry contains configuration
+# from one configuration file
+# this will replace cfg_all_list, cfg_all_set, cfg_bind
+cfg_big_all_list = []       # list of lists, based on items.json
+cfg_big_all_set = []        # list of sets, based on items.json
+cfg_big_bind = []           # list of sets, based on bindings.json
 
 resourcetype_name_dict = {'server':'name', \
                             'servicegroup':'servicegroupname', \
@@ -33,9 +40,9 @@ resourcetype_name_dict = {'server':'name', \
                             "service":"name",\
                             "lbgroup":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
 resourcetype_list = ["rewriteaction", "rewritepolicy", "sslprofile", "cspolicy", "csvserver", \
-                    "lbvserver", "servicegroup", "server", "lbmonitor", "service","lbgroup"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                    "lbvserver", "servicegroup", "server", "lbmonitor", "service", "lbgroup"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
-dont_process_at_beg_list = ["lbgroup"]      # don't create this resources at the beginning 
+dont_process_at_beg_list = ["lbgroup"]      # don't create this resources at the beginning
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
@@ -119,8 +126,8 @@ def load_json_cfgs():
     ''' Loads all configuration files into appropriates data structures
     '''
 
-    global cfg_all
-    global cfg_all2
+    global cfg_all_list
+    global cfg_all_set
     global cfg_bind
     # server
     if os.path.isfile(config_file):        #zpracovani souboru nsconfig.json
@@ -152,10 +159,63 @@ def load_json_cfgs():
             for restype in resourcetype_list:
                 if restype in resource_json.keys():
                     a = {restype:resource_json[restype]}
-                    cfg_all.append(dict(a))
-                    #                  cfg_all.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
-                    cfg_all2[restype] = resource_json[restype]      # elements description
+                    cfg_all_list.append(dict(a))
+                    #                  cfg_all_list.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
+                    cfg_all_set[restype] = resource_json[restype]      # elements description
     return True
+
+def load_json_cfgs2():
+    ''' Loads all configuration files into appropriates data structures
+    '''
+
+    global cfg_big_all_list
+    global cfg_big_all_set
+    global cfg_big_bind
+
+    cfg_tmp_list = []
+    cfg_tmp_set = {}
+    # server
+    if os.path.isfile(config_file):        #zpracovani souboru nsconfig.json
+        try:
+            with open(config_file) as data_file:
+                config_json = json.loads(data_file.read())
+        except IOError:
+            print("Unable to read the file", config_file)
+            exit(1)
+    else:
+        print("Cannot find the file", config_file)
+        exit(1)
+
+    for section in config_json:              # projdi vsechny sekce (items, bindings) z nsconfig.json
+        for files in config_json[section]['filename']:
+            filename = str(files)
+            cfg_tmp_list = []
+            cfg_tmp_set = {}
+            try:
+                with open(filename) as data_file:
+                    resource_json = json.loads(data_file.read())
+            except ValueError:
+                print("Unable to process the file", filename, ", syntax error?")
+                exit(1)
+            except IOError:
+                print("Unable to read the file", filename)
+                exit(1)
+            if section == 'bindings':
+                for key in list(resource_json.keys()):
+                    cfg_tmp_set[key] = resource_json[key]    # binding descriptions in special dict variable
+                cfg_big_bind.append(cfg_tmp_set)
+            else:
+                for restype in resourcetype_list:
+                    if restype in resource_json.keys():
+                        a = {restype:resource_json[restype]}
+                        cfg_tmp_list.append(dict(a))
+                        #                  cfg_all_list.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
+                        cfg_tmp_set[restype] = resource_json[restype]      # elements description
+                cfg_big_all_list.append(cfg_tmp_list)
+                cfg_big_all_set.append(cfg_tmp_set)
+
+
+
 
 def create_update(body, action='create'):                  # it creates/updates or deletes items defined in nsconfig.json
     ''' Creates/updates/deletes one item (server, monitor,..)
@@ -204,11 +264,11 @@ def create_update(body, action='create'):                  # it creates/updates 
 def process_json_cfgs(action='update'):
     ''' Process (create/update/delete) configuration of all items (servers,monitors,..).
     '''
-    for item in reversed(cfg_all):
+    for item in reversed(cfg_all_list):
         if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
             create_update(item, 'delete')
     if action == 'update' or action == 'create':
-        for item in cfg_all:
+        for item in cfg_all_list:
             if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
                 create_update(item)
 
@@ -216,8 +276,8 @@ def process_one_item_from_cfgs(item_type, action):
     ''' Process (create/update/delete) one item type (servers,monitors,..) from config file.
     '''
 
-    if item_type in cfg_all2.keys():                    # does item type exist in cfg?
-        body = {item_type : cfg_all2[item_type]}
+    if item_type in cfg_all_set.keys():                    # does item type exist in cfg?
+        body = {item_type : cfg_all_set[item_type]}
         create_update(body, action)
 
 
@@ -226,7 +286,7 @@ def check_if_items_exist():
     ''' Check if items in cfg file (servers,monitors,..) already exist.
     '''
     exists = False
-    for item in cfg_all:
+    for item in cfg_all_list:
         typ = list(item.keys())[0]
         res_type_name = resourcetype_name_dict[typ]   # what is the name of "name" field in this type ?
         for subitem in item[typ]:             # go through every item of specific type
@@ -300,7 +360,7 @@ def unbind_all_from_sslvs():
     ''' Unbinds all objects from all CS VSs
     '''
 
-    for csvs in cfg_all2['csvserver']:
+    for csvs in cfg_all_set['csvserver']:
         if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
             debug_print("SSLVS unbind:", csvs['name'])
             response = requests.get(nitro_config_url + 'sslvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
@@ -331,7 +391,7 @@ def unbind_all_from_csvs():
     ''' Unbinds all objects from all CS VSs
     '''
 
-    for csvs in cfg_all2['csvserver']:
+    for csvs in cfg_all_set['csvserver']:
         if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
             debug_print("CSVS unbind:", csvs['name'])
             response = requests.get(nitro_config_url + 'csvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
@@ -423,7 +483,7 @@ def unbind_all_from_lbvs():
     ''' Unbinds all objects from all LB VSs
     '''
 
-    for lbvs in cfg_all2['lbvserver']:
+    for lbvs in cfg_all_set['lbvserver']:
         if resource_exist('lbvserver', lbvs['name']):     # does specific LBVS already exist ?
             debug_print("LBVS unbind:", lbvs['name'])
             response = requests.get(nitro_config_url + 'lbvserver_binding/' + lbvs['name'], headers=json_header, verify=False, cookies=cookie)
@@ -500,8 +560,8 @@ def unbind_all_from_lbsg():                            # unbind all items (monit
     ''' Unbinds all objects from all LB SGs
     '''
 
-    if 'servicegroup' in cfg_all2:
-        for lbsg in cfg_all2['servicegroup']:
+    if 'servicegroup' in cfg_all_set:
+        for lbsg in cfg_all_set['servicegroup']:
             if resource_exist('servicegroup', lbsg['servicegroupname']):     # does specific LBSG already exist ?
                 debug_print("LBSG unbind:", lbsg['servicegroupname'])
                 response = requests.get(nitro_config_url + 'servicegroup_binding/' + lbsg['servicegroupname'], headers=json_header, verify=False, cookies=cookie)
@@ -611,8 +671,8 @@ def unbind_all_from_lbsvc():                            # unbind all items (moni
     ''' Unbinds all objects from all LB SVCs
     '''
 
-    if 'service' in cfg_all2:
-        for lbsvc in cfg_all2['service']:
+    if 'service' in cfg_all_set:
+        for lbsvc in cfg_all_set['service']:
             if resource_exist('service', lbsvc['name']):     # does specific LBSG already exist ?
                 debug_print("LBSVC unbind:", lbsvc['name'])
                 response = requests.get(nitro_config_url + 'service_binding/' + lbsvc['name'], headers=json_header, verify=False, cookies=cookie)
@@ -670,8 +730,8 @@ def unbind_general(unb_name):
 
     subtree_name = unb_name + '_binding'
 
-    if unb_name in cfg_all2:
-        for item in cfg_all2[unb_name]:
+    if unb_name in cfg_all_set:
+        for item in cfg_all_set[unb_name]:
             if resource_exist(unb_name, item["name"]):       # resource type, name
                 debug_print(unb_name, "unbind:", item['name'])
                 response = requests.get(nitro_config_url + subtree_name + '/' + item['name'], headers=json_header, verify=False, cookies=cookie)
