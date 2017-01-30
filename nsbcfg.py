@@ -362,60 +362,62 @@ def unbind_all_from_sslvs():
     ''' Unbinds all objects from all CS VSs
     '''
     for cfg_set in cfg_big_all_set:
-        for csvs in cfg_set['csvserver']:
-            if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
-                debug_print("SSLVS unbind:", csvs['name'])
-                response = requests.get(nitro_config_url + 'sslvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
-                if response.status_code == 200:
-                    body_json = json.loads(response.text)
-                    ssl_bindings = body_json['sslvserver_binding']
-                    for key, value in dict.items(ssl_bindings[0]):
-                        if sslvs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
-                            for subitem in ssl_bindings[0][key]:     # projed vsechny cleny dane polozky
-                                subitem_name = subitem[sslvs_parametr_name_dict[key]]    # jmeno konkretni polozky
-                                add_param = ''
-                                debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
-                                response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + sslvs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
-                                if response.status_code != 200:
-                                    print("Chyba pri SSLVS unbind", key, subitem_name, "http status kod:", response.status_code)
-                                    print("Response text", response.text)
-                                    return False
-                                else:
-                                    print("SSLVS unbind:", sslvs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
-                else:
-                    None
-                    #print("Chyba pri GET csvserver_binding", csvs['csvserver'])
-                    #return False
-            debug_print("Konec SSLVS unbind:", csvs['name'])
+        if 'csvserver' in cfg_set:              # is item 'csvserver' in current cfg_set (i.e config file)?
+            for csvs in cfg_set['csvserver']:
+                if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
+                    debug_print("SSLVS unbind:", csvs['name'])
+                    response = requests.get(nitro_config_url + 'sslvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
+                    if response.status_code == 200:
+                        body_json = json.loads(response.text)
+                        ssl_bindings = body_json['sslvserver_binding']
+                        for key, value in dict.items(ssl_bindings[0]):
+                            if sslvs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
+                                for subitem in ssl_bindings[0][key]:     # projed vsechny cleny dane polozky
+                                    subitem_name = subitem[sslvs_parametr_name_dict[key]]    # jmeno konkretni polozky
+                                    add_param = ''
+                                    debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
+                                    response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + sslvs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                                    if response.status_code != 200:
+                                        print("Chyba pri SSLVS unbind", key, subitem_name, "http status kod:", response.status_code)
+                                        print("Response text", response.text)
+                                        return False
+                                    else:
+                                        print("SSLVS unbind:", sslvs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
+                    else:
+                        None
+                        #print("Chyba pri GET csvserver_binding", csvs['csvserver'])
+                        #return False
+                debug_print("Konec SSLVS unbind:", csvs['name'])
 
 
 def unbind_all_from_csvs():
     ''' Unbinds all objects from all CS VSs
     '''
     for cfg_set in cfg_big_all_set:
-        for csvs in cfg_set['csvserver']:
-            if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
-                debug_print("CSVS unbind:", csvs['name'])
-                response = requests.get(nitro_config_url + 'csvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
-                if response.status_code != 200:
-                    print("Chyba pri GET csvserver_binding", csvs['csvserver'])
-                    return False
-                body_json = json.loads(response.text)
-                cs_bindings = body_json['csvserver_binding']
-                for key, value in dict.items(cs_bindings[0]):
-                    if cs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
-                        for subitem in cs_bindings[0][key]:     # projed vsechny cleny dane polozky
-                            subitem_name = subitem[cs_parametr_name_dict[key]]    # jmeno konkretni polozky
-                            add_param = ''
-                            debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
-                            response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + cs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
-                            if response.status_code != 200:
-                                print("Chyba pri CSVS unbind", key, subitem_name, "http status kod:", response.status_code)
-                                print("Response text", response.text)
-                                return False
-                            else:
-                                print("CSVS unbind:", cs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
-            debug_print("Konec CSVS unbind:", csvs['name'])
+        if 'csvserver' in cfg_set:
+            for csvs in cfg_set['csvserver']:
+                if resource_exist('csvserver', csvs['name']):     # does specific CSVS already exist ?
+                    debug_print("CSVS unbind:", csvs['name'])
+                    response = requests.get(nitro_config_url + 'csvserver_binding/' + csvs['name'], headers=json_header, verify=False, cookies=cookie)
+                    if response.status_code != 200:
+                        print("Chyba pri GET csvserver_binding", csvs['csvserver'])
+                        return False
+                    body_json = json.loads(response.text)
+                    cs_bindings = body_json['csvserver_binding']
+                    for key, value in dict.items(cs_bindings[0]):
+                        if cs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
+                            for subitem in cs_bindings[0][key]:     # projed vsechny cleny dane polozky
+                                subitem_name = subitem[cs_parametr_name_dict[key]]    # jmeno konkretni polozky
+                                add_param = ''
+                                debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze CSVS
+                                response = requests.delete(nitro_config_url + key + '/' + csvs['name'] + '?args=' + cs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                                if response.status_code != 200:
+                                    print("Chyba pri CSVS unbind", key, subitem_name, "http status kod:", response.status_code)
+                                    print("Response text", response.text)
+                                    return False
+                                else:
+                                    print("CSVS unbind:", cs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", csvs['name'])
+                debug_print("Konec CSVS unbind:", csvs['name'])
 
 def bind_all_csvs():
     ''' Binds all objects to all CS VSs
@@ -485,29 +487,30 @@ def unbind_all_from_lbvs():
     ''' Unbinds all objects from all LB VSs
     '''
     for cfg_set in cfg_big_all_set:
-        for lbvs in cfg_set['lbvserver']:
-            if resource_exist('lbvserver', lbvs['name']):     # does specific LBVS already exist ?
-                debug_print("LBVS unbind:", lbvs['name'])
-                response = requests.get(nitro_config_url + 'lbvserver_binding/' + lbvs['name'], headers=json_header, verify=False, cookies=cookie)
-                if response.status_code != 200:
-                    print("Chyba pri GET lbvserver_binding", lbvs['lbvserver'])
-                    return False
-                body_json = json.loads(response.text)
-                vs_bindings = body_json['lbvserver_binding']
-                for key, value in dict.items(vs_bindings[0]):
-                    if vs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
-                        for subitem in vs_bindings[0][key]:     # projed vsechny cleny dane polozky
-                            subitem_name = subitem[vs_parametr_name_dict[key]]    # jmeno konkretni polozky
-                            add_param = ''
-                            debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze LB service groupy
-                            response = requests.delete(nitro_config_url + key + '/' + lbvs['name'] + '?args=' + vs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
-                            if response.status_code != 200:
-                                print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
-                                print("Response text", response.text)
-                                return False
-                            else:
-                                print("LBVS unbind:", vs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbvs['name'])
-            debug_print("Konec LBVS unbind:", lbvs['name'])
+        if 'lbvserver' in cfg_set:
+            for lbvs in cfg_set['lbvserver']:
+                if resource_exist('lbvserver', lbvs['name']):     # does specific LBVS already exist ?
+                    debug_print("LBVS unbind:", lbvs['name'])
+                    response = requests.get(nitro_config_url + 'lbvserver_binding/' + lbvs['name'], headers=json_header, verify=False, cookies=cookie)
+                    if response.status_code != 200:
+                        print("Chyba pri GET lbvserver_binding", lbvs['lbvserver'])
+                        return False
+                    body_json = json.loads(response.text)
+                    vs_bindings = body_json['lbvserver_binding']
+                    for key, value in dict.items(vs_bindings[0]):
+                        if vs_parametr_name_dict.get(key) != None: # pouze polozky definovane ve slovniku
+                            for subitem in vs_bindings[0][key]:     # projed vsechny cleny dane polozky
+                                subitem_name = subitem[vs_parametr_name_dict[key]]    # jmeno konkretni polozky
+                                add_param = ''
+                                debug_print("Unbinding", key, subitem_name)      # a unbinduje je ze LB service groupy
+                                response = requests.delete(nitro_config_url + key + '/' + lbvs['name'] + '?args=' + vs_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                                if response.status_code != 200:
+                                    print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                                    print("Response text", response.text)
+                                    return False
+                                else:
+                                    print("LBVS unbind:", vs_parametr_name_dict[key], subitem_name, "successfuly unbinded from", lbvs['name'])
+                debug_print("Konec LBVS unbind:", lbvs['name'])
 
 def bind_all_lbvs():
     ''' Binds all objects to all LB VSs
