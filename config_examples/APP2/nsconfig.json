@@ -1,10 +1,10 @@
 {
     "bindings" : 
     {
-        "filename": "bindings.json"
+        "filename": ["bindings.json"]
     },
     "items" :
     {
-        "filename": "items.json"
+        "filename": ["items.json"]
     }
 }
