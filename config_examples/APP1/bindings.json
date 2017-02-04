@@ -1,80 +1,80 @@
 {
     "service_binding" : [
         {
-        	"name": "SVC_PROD_PRTGDC1_SSL",
+        	"name": "SVC_PROD_APP1DC1_SSL",
             "service_lbmonitor_binding": [
                 {
-                    "name": "SVC_PROD_PRTGDC1_SSL",
-                    "monitor_name": "MON_PROD_PRTG-NET_SSL"
+                    "name": "SVC_PROD_APP1DC1_SSL",
+                    "monitor_name": "MON_PROD_APP1-NET_SSL"
                 }
             ]
         },
         {
-        	"name": "SVC_PROD_PRTGDC2_SSL",
+        	"name": "SVC_PROD_APP1DC2_SSL",
             "service_lbmonitor_binding": [
                 {
-                    "name": "SVC_PROD_PRTGDC2_SSL",
-                    "monitor_name": "MON_PROD_PRTG-NET_SSL"
+                    "name": "SVC_PROD_APP1DC2_SSL",
+                    "monitor_name": "MON_PROD_APP1-NET_SSL"
                 }
             ]
         }
     ],
     "lbvserver_binding" : [
         {
-            "name": "LBVS_PROD_PRTGDC1-NET_SSL",
+            "name": "LBVS_PROD_APP1DC1-NET_SSL",
             "lbvserver_service_binding": [
                 {
-                    "name": "LBVS_PROD_PRTGDC1-NET_SSL",
-                    "servicename": "SVC_PROD_PRTGDC1_SSL"
+                    "name": "LBVS_PROD_APP1DC1-NET_SSL",
+                    "servicename": "SVC_PROD_APP1DC1_SSL"
                 }
             ]
         },
         {
-            "name": "LBVS_PROD_PRTGDC2-NET_SSL",
+            "name": "LBVS_PROD_APP1DC2-NET_SSL",
             "lbvserver_service_binding": [
                 {
-                    "name": "LBVS_PROD_PRTGDC2-NET_SSL",
-                    "servicename": "SVC_PROD_PRTGDC2_SSL"
+                    "name": "LBVS_PROD_APP1DC2-NET_SSL",
+                    "servicename": "SVC_PROD_APP1DC2_SSL"
                 }
             ]
         }
     ],
     "csvserver_binding": [
         {
-            "name": "CSVS_PROD_PRTG-NET_SSL",
+            "name": "CSVS_PROD_APP1-NET_SSL",
             "csvserver_lbvserver_binding": [
                 {
-                    "name": "CSVS_PROD_PRTG-NET_SSL",
-                    "lbvserver": "LBVS_PROD_PRTGDC1-NET_SSL"
+                    "name": "CSVS_PROD_APP1-NET_SSL",
+                    "lbvserver": "LBVS_PROD_APP1DC1-NET_SSL"
                 }
             ]
         }
     ],
     "sslvserver_binding": [
         {
-            "vservername": "CSVS_PROD_PRTG-NET_SSL",
+            "vservername": "CSVS_PROD_APP1-NET_SSL",
             "sslvserver_ecccurve_binding": [
                 {
-                    "vservername": "CSVS_PROD_PRTG-NET_SSL",
+                    "vservername": "CSVS_PROD_APP1-NET_SSL",
                     "ecccurvename": "P_256"
                 },
                 {
-                    "vservername": "CSVS_PROD_PRTG-NET_SSL",
+                    "vservername": "CSVS_PROD_APP1-NET_SSL",
                     "ecccurvename": "P_384"
                 },
                 {
-                    "vservername": "CSVS_PROD_PRTG-NET_SSL",
+                    "vservername": "CSVS_PROD_APP1-NET_SSL",
                     "ecccurvename": "P_224"
                 },
                 {
-                    "vservername": "CSVS_PROD_PRTG-NET_SSL",
+                    "vservername": "CSVS_PROD_APP1-NET_SSL",
                     "ecccurvename": "P_521"
                 }
             ],
             "sslvserver_sslcertkey_binding": [
                 {
-                    "vservername": "CSVS_PROD_PRTG-NET_SSL",
-                    "certkeyname": "*.cpas.cz",
+                    "vservername": "CSVS_PROD_APP1-NET_SSL",
+                    "certkeyname": "cert1",
                     "ca": false,
                     "snicert": false,
                     "skipcaname": false
@@ -82,7 +82,7 @@
             ],
             "sslvserver_sslcipher_binding": [
                 {
-                    "vservername": "CSVS_PROD_PRTG-NET_SSL",
+                    "vservername": "CSVS_PROD_APP1-NET_SSL",
                     "cipheraliasname": "DEFAULT",
                     "stateflag": "24",
                     "description": "Predefined Cipher Alias"
@@ -90,29 +90,29 @@
             ]
         },
         {
-            "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
+            "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
             "sslvserver_ecccurve_binding": [
                 {
-                    "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
                     "ecccurvename": "P_256"
                 },
                 {
-                    "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
                     "ecccurvename": "P_384"
                 },
                 {
-                    "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
                     "ecccurvename": "P_224"
                 },
                 {
-                    "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
                     "ecccurvename": "P_521"
                 }
             ],
             "sslvserver_sslcertkey_binding": [
                 {
-                    "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
-                    "certkeyname": "*.cpas.cz",
+                    "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
+                    "certkeyname": "cert1",
                     "ca": false,
                     "snicert": false,
                     "skipcaname": false
@@ -120,7 +120,7 @@
             ],
             "sslvserver_sslcipher_binding": [
                 {
-                    "vservername": "LBVS_PROD_PRTGDC1-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC1-NET_SSL",
                     "cipheraliasname": "DEFAULT",
                     "stateflag": "24",
                     "description": "Predefined Cipher Alias"
@@ -128,29 +128,29 @@
             ]
         },
         {
-            "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
+            "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
             "sslvserver_ecccurve_binding": [
                 {
-                    "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
                     "ecccurvename": "P_256"
                 },
                 {
-                    "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
                     "ecccurvename": "P_384"
                 },
                 {
-                    "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
                     "ecccurvename": "P_224"
                 },
                 {
-                    "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
                     "ecccurvename": "P_521"
                 }
             ],
             "sslvserver_sslcertkey_binding": [
                 {
-                    "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
-                    "certkeyname": "*.cpas.cz",
+                    "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
+                    "certkeyname": "cert1",
                     "ca": false,
                     "snicert": false,
                     "skipcaname": false
@@ -158,7 +158,7 @@
             ],
             "sslvserver_sslcipher_binding": [
                 {
-                    "vservername": "LBVS_PROD_PRTGDC2-NET_SSL",
+                    "vservername": "LBVS_PROD_APP1DC2-NET_SSL",
                     "cipheraliasname": "DEFAULT",
                     "stateflag": "24",
                     "description": "Predefined Cipher Alias"
@@ -168,28 +168,28 @@
     ],  
     "sslservice_binding": [
         {
-            "servicename": "SVC_PROD_PRTGDC1_SSL",
+            "servicename": "SVC_PROD_APP1DC1_SSL",
             "sslservice_ecccurve_binding": [
                 {
-                    "servicename": "SVC_PROD_PRTGDC1_SSL",
+                    "servicename": "SVC_PROD_APP1DC1_SSL",
                     "ecccurvename": "P_256"
                 },
                 {
-                    "servicename": "SVC_PROD_PRTGDC1_SSL",
+                    "servicename": "SVC_PROD_APP1DC1_SSL",
                     "ecccurvename": "P_384"
                 },
                 {
-                    "servicename": "SVC_PROD_PRTGDC1_SSL",
+                    "servicename": "SVC_PROD_APP1DC1_SSL",
                     "ecccurvename": "P_224"
                 },
                 {
-                    "servicename": "SVC_PROD_PRTGDC1_SSL",
+                    "servicename": "SVC_PROD_APP1DC1_SSL",
                     "ecccurvename": "P_521"
                 }
             ],
             "sslservice_sslcipher_binding": [
                 {
-                    "servicename": "SVC_PROD_PRTGDC1_SSL",
+                    "servicename": "SVC_PROD_APP1DC1_SSL",
                     "cipheraliasname": "ALL",
                     "stateflag": "24",
                     "description": "Predefined Cipher Alias"
@@ -197,28 +197,28 @@
             ]
         },
         {
-            "servicename": "SVC_PROD_PRTGDC2_SSL",
+            "servicename": "SVC_PROD_APP1DC2_SSL",
             "sslservice_ecccurve_binding": [
                 {
-                    "servicename": "SVC_PROD_PRTGDC2_SSL",
+                    "servicename": "SVC_PROD_APP1DC2_SSL",
                     "ecccurvename": "P_256"
                 },
                 {
-                    "servicename": "SVC_PROD_PRTGDC2_SSL",
+                    "servicename": "SVC_PROD_APP1DC2_SSL",
                     "ecccurvename": "P_384"
                 },
                 {
-                    "servicename": "SVC_PROD_PRTGDC2_SSL",
+                    "servicename": "SVC_PROD_APP1DC2_SSL",
                     "ecccurvename": "P_224"
                 },
                 {
-                    "servicename": "SVC_PROD_PRTGDC2_SSL",
+                    "servicename": "SVC_PROD_APP1DC2_SSL",
                     "ecccurvename": "P_521"
                 }
             ],
             "sslservice_sslcipher_binding": [
                 {
-                    "servicename": "SVC_PROD_PRTGDC2_SSL",
+                    "servicename": "SVC_PROD_APP1DC2_SSL",
                     "cipheraliasname": "ALL",
                     "stateflag": "24",
                     "description": "Predefined Cipher Alias"
