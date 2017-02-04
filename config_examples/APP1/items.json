@@ -1,0 +1,86 @@
+{
+    "lbmonitor": [
+        {
+            "monitorname": "MON_PROD_APP1-NET_SSL",
+            "type": "HTTP-ECV",
+            "interval": 30,
+            "units3": "SEC",
+            "resptimeout": 2,
+            "resptimeoutthresh": "0",
+            "units4": "SEC",
+            "retries": 3,
+            "failureretries": 0,
+            "alertretries": 0,
+            "successretries": 1,
+            "downtime": 30,
+            "units2": "SEC",
+            "state": "ENABLED",
+            "secure": "YES",
+            "send": "GET /index.htm",
+            "recv": "CZCSAPP1DC1"
+        }
+    ],
+    "server": [
+        {
+            "name": "SVR_CZCSAPP1DC1",
+            "ipaddress": "192.168.36.135",
+            "comment": "APP1-NET DC1"
+        },
+        {
+            "name": "SVR_CZCSAPP1DC2",
+            "ipaddress": "192.168.164.135",
+            "comment": "APP1-NET DC2"
+        }
+    ],
+    "service": [
+        {
+            "name": "SVC_PROD_APP1DC1_SSL",
+            "servername": "SVR_CZCSAPP1DC1",
+            "servicetype": "SSL",
+            "port": 443
+        },
+        {
+            "name": "SVC_PROD_APP1DC2_SSL",
+            "servername": "SVR_CZCSAPP1DC2",
+            "servicetype": "SSL",
+            "port": 443
+        }
+    ],
+    "lbvserver": [
+        {
+            "name": "LBVS_PROD_APP1DC2-NET_SSL",
+            "servicetype": "SSL",
+            "backupvserver": "LBVS_FAILOVER_SSL",
+            "lbmethod": "LEASTCONNECTION"
+        },
+        {
+            "name": "LBVS_PROD_APP1DC1-NET_SSL",
+            "servicetype": "SSL",
+            "backupvserver": "LBVS_PROD_APP1DC2-NET_SSL",
+            "lbmethod": "LEASTCONNECTION"
+        }
+    ],
+    "csvserver": [
+        {
+            "name": "CSVS_PROD_APP1-NET_SSL",
+            "insertvserveripport": "OFF",
+            "td": "0",
+            "ipv46": "10.1.2.11",
+            "port": 443,
+            "range": "1",
+            "servicetype": "SSL",
+            "precedence": "RULE",
+            "clttimeout": "180"
+        }
+    ],
+    "sslservice": [
+        {
+            "servicename": "SVC_PROD_APP1DC1_SSL",
+            "ssl2": "DISABLED",
+            "ssl3": "DISABLED",
+            "tls1": "DISABLED",
+            "tls11": "DISABLED",
+            "tls12": "ENABLED"
+        }
+    ] 
+}

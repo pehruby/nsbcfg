@@ -1,0 +1,10 @@
+{
+    "bindings" : 
+    {
+        "filename": ["bindings.json"]
+    },
+    "items" :
+    {
+        "filename": ["items.json"]
+    }
+}
