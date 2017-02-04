@@ -1,0 +1,77 @@
+{
+    "servicegroup_binding" : [
+        {
+            "servicegroupname": "SG_TEST_APP2_HTTP",
+            "servicegroup_servicegroupmember_binding": [
+                {
+                    "servicegroupname": "SG_TEST_APP2_HTTP",
+                    "port": 80,
+                    "weight": "2",
+                    "servername": "SVR_APP2-W1-CZP",
+                    "state": "ENABLED"
+                },
+                {
+                    "servicegroupname": "SG_TEST_APP2_HTTP",
+                    "port": 80,
+                    "weight": "1",
+                    "servername": "SVR_APP2-W2-CZP",
+                    "state": "ENABLED"
+                },
+                {
+                    "servicegroupname": "SG_TEST_APP2_HTTP",
+                    "port": 80,
+                    "weight": "1",
+                    "servername": "SVR_APP2-W3-CZP",
+                    "state": "ENABLED"
+                },
+                {
+                    "servicegroupname": "SG_TEST_APP2_HTTP",
+                    "port": 80,
+                    "weight": "1",
+                    "servername": "SVR_APP2-W4-CZP",
+                    "state": "ENABLED"
+                }
+                 
+            ],
+            "servicegroup_lbmonitor_binding": [
+                {
+                    "servicegroupname": "SG_TEST_APP2_HTTP",
+                    "weight": "1",
+                    "monitor_name": "MON_TEST_APP2",
+                    "hashid": "0"
+                }
+            ]
+        }
+    ],
+    "lbvserver_binding" : [
+        {
+            "name": "LBVS_TEST_APP2_HTTP",
+            "lbvserver_servicegroup_binding" : [
+                {
+                    "name":"LBVS_TEST_APP2_HTTP",
+                    "servicegroupname": "SG_TEST_APP2_HTTP"
+                }
+            ]
+        }
+    ],
+    "csvserver_binding": [
+        {
+            "name": "CSVS_TEST_APP2_HTTP",
+            "csvserver_lbvserver_binding": [
+                {
+                "name": "CSVS_TEST_APP2_HTTP",
+                "lbvserver": "LBVS_TEST_APP2_HTTP"
+                }
+            ],
+            "csvserver_rewritepolicy_binding": [
+                {
+                    "name": "CSVS_TEST_APP2_HTTP",
+                    "policyname": "RWP_TEST_APP2_INS-X-FORW-FOR-IP",
+                    "priority": "100",
+                    "bindpoint": "REQUEST",
+                    "gotopriorityexpression": "END"
+                }
+            ]
+        }
+    ]
+}
