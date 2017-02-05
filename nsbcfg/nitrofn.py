@@ -8,8 +8,10 @@ import sys
 requests.packages.urllib3.disable_warnings()
 
 nitro_config_url = ""
+nitro_stat_url = ""
 ns_ip = ""
 nitro_config_path = '/nitro/v1/config/'
+nitro_stat_path = '/nitro/v1/stat/'
 cookie = {}
 json_header = {'Content-type': 'application/json'}
 # config_file = 'nsconfig.json'
@@ -26,6 +28,9 @@ debug = False
 cfg_big_all_list = []       # list of lists, based on files contained in "items" configuration file section
 cfg_big_all_set = []        # list of sets, based on files contained in "items" configuration file section
 cfg_big_bind = []           # list of sets, based on files contained in "bindings" configuration file section
+
+
+stat_all_dict = {}          # statistics of items configured in configuration file
 
 resourcetype_name_dict = {'server':'name', \
                             'servicegroup':'servicegroupname', \
@@ -60,13 +65,62 @@ general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "sslvserver_ecccurve_binding":"ecccurvename",\
                                 "sslvserver_sslcertkey_binding":"certkeyname",\
                                 "lbgroup_lbvserver_binding":"vservername"}
+stat_name_list = ["service", "servicegroup", "lbvserver", "csvserver"]      # name of items which are we going to get statistics for
+
+
+
+def get_stat_one_resource(restype, name):
+    ''' Get statistics for one resource
+    '''
+    try:
+        response = requests.get(nitro_stat_url + restype + '/' + name, headers=json_header, verify=False, cookies=cookie)
+    except (requests.ConnectionError, requests.ConnectTimeout):
+        print("Unable to connect to the server")
+        exit(1)
+    if response.status_code != 200:
+        return None
+    body_json = json.loads(response.text)
+    retjson = body_json[restype]
+    return retjson
+
+def get_stat_all_cfg_resource():
+    ''' Get statistics for resources configured in configuration file
+    '''
+
+    for onecfg in cfg_big_all_set:      # go through all items cfg files
+        for item_type in stat_name_list:     # go through all item types
+            if item_type in onecfg.keys():   # does item type exist in cfg?
+                body = onecfg[item_type]     # body contains configuration of specific type
+
+#                item_name = body[restype_name]
+                for item in body:
+                    res_type_name = resourcetype_name_dict[item_type]   # what is the name of "name" field in this type ?
+                    name = str(item[res_type_name])          #  resource name
+                    one_stat = get_stat_one_resource(item_type, name)   # stats for one item of specific item_type
+                    if not stat_all_dict.get(item_type):    # is this item type in dictionary ?
+                        stat_all_dict[item_type] = []       # no, create empty list for item type
+                    stat_all_dict[item_type].append(one_stat)   # add item statistics to list of apropriate item type
+
+
+                None
+                None
+
+
+
+
+
 
 
 def init_nitrofn(ns_ip, deb):
+    ''' Initialize some variables
+    '''
+
     global nitro_config_url
+    global nitro_stat_url
     global debug
 
     nitro_config_url = "https://"+ns_ip+nitro_config_path
+    nitro_stat_url = "https://"+ns_ip+nitro_stat_path
     debug = deb
 
 def resource_exist(restype, name):
