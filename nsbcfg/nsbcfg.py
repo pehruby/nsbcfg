@@ -8,6 +8,9 @@ import nitrofn
 
 
 def main():
+    ''' Main
+    '''
+
     paction = ''               # create, update, delete
     config_file = 'nsconfig.json'
 
