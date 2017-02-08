@@ -86,6 +86,7 @@ def main():
 
 #    nitrofn.get_stat_one_resource('service', 'SVC_PH-TEST-S01_HTTP')
     nitrofn.get_stat_all_cfgfile_resource()
+    nitrofn.print_stat_all_simple()
 
     print("Finish")
 

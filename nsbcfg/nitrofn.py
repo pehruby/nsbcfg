@@ -30,7 +30,7 @@ cfg_big_all_set = []        # list of sets, based on files contained in "items" 
 cfg_big_bind = []           # list of sets, based on files contained in "bindings" configuration file section
 
 
-stat_all_dict = {}          # statistics of items configured in configuration file
+stat_all_cfgfiles_dict = {}          # statistics of items configured in configuration file
 
 resourcetype_name_dict = {'server':'name', \
                             'servicegroup':'servicegroupname', \
@@ -80,6 +80,7 @@ def get_stat_one_resource(restype, name, args=''):
         print("Unable to connect to the server")
         exit(1)
     if response.status_code != 200:
+        print("Unexpected http response :", restype, name)
         return None
     body_json = json.loads(response.text)
     retjson = body_json[restype]
@@ -99,22 +100,20 @@ def get_stat_all_cfgfile_resource():
                     res_type_name = resourcetype_name_dict[item_type]   # what is the name of "name" field in this type ?
                     name = str(item[res_type_name])          #  resource name
                     if resource_exist(item_type, name):
-                        if not stat_all_dict.get(item_type):    # is this item type in dictionary ?
-                            stat_all_dict[item_type] = []       # no, create empty list for item type
+                        if not stat_all_cfgfiles_dict.get(item_type):    # is this item type in dictionary ?
+                            stat_all_cfgfiles_dict[item_type] = []       # no, create empty list for item type
                         if item_type == 'servicegroup':         # proces servicegroup_servicegroupmember_binding
                             more_stat = get_stat_cfgfile_servicegroupmember(name)   # get statistics for members of specific servicegroup
                             for one_sgmember in more_stat:
-                                if not stat_all_dict.get('servicegroupmember'):    # is servicegroupmember type in dictionary ?
-                                    stat_all_dict['servicegroupmember'] = []       # no, create empty list for servicegroupmember
-                                stat_all_dict['servicegroupmember'].append(one_sgmember)
+                                if not stat_all_cfgfiles_dict.get('servicegroupmember'):    # is servicegroupmember type in dictionary ?
+                                    stat_all_cfgfiles_dict['servicegroupmember'] = []       # no, create empty list for servicegroupmember
+                                stat_all_cfgfiles_dict['servicegroupmember'].append(one_sgmember[0])
                         one_stat = get_stat_one_resource(item_type, name)   # stats for one item of specific item_type
-                        stat_all_dict[item_type].append(one_stat)   # add item statistics to list of apropriate item type
+                        if one_stat:
+                            stat_all_cfgfiles_dict[item_type].append(one_stat[0])   # add item statistics to list of apropriate item type, statistics dict is first (and only one) item in list, that's why [0]
                     else:
                         print("Resource", name, "doesn't exist")
 
-
-                None
-                None
 
 
 
@@ -131,11 +130,88 @@ def get_stat_cfgfile_servicegroupmember(servicegroup):
                     if 'servicegroup_servicegroupmember_binding' in sgitem:
                         for item in sgitem['servicegroup_servicegroupmember_binding']:     # go through all bindings in this servicegroup
                             one_stat = get_stat_one_resource('servicegroupmember', servicegroup, 'servername:'+item['servername']+',port:'+str(item['port']))
-                            response.append(one_stat)
+                            if one_stat:
+                                response.append(one_stat)
 
     return response
 
 
+def print_stat_all_simple():
+    ''' Prints statistics collected in stat_all_cfgfiles_dict (items configured in config files)
+    '''
+
+    print("")
+    print_stat_csvserver_list(stat_all_cfgfiles_dict['csvserver'])
+    print("")
+    print_stat_lbvserver_list(stat_all_cfgfiles_dict['lbvserver'])
+    print("")
+    print_stat_services_list(stat_all_cfgfiles_dict['service'])
+    print("")
+    print_stat_sg_list(stat_all_cfgfiles_dict['servicegroup'])
+    print("")
+    print_stat_sgmember_list(stat_all_cfgfiles_dict['servicegroupmember'])
+    print("")
+
+def print_stat_csvserver_list(vserver_list):
+    ''' Prints statistics collected in list of csvservers
+    '''
+
+    outformat = '{:30}{:20}{:10}{:10}{:>12}'
+    print('{:-<82}'.format(''))
+    print("CS VSERVERS")
+    print('{:-<82}'.format(''))
+    print(outformat.format('Name', 'IP', 'Type', 'State', 'Hits'))
+    for one_server in vserver_list:
+        print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['type'], one_server['state'], one_server['tothits']))
+
+def print_stat_lbvserver_list(vserver_list):
+    ''' Prints statistics collected in list of lbvservers
+    '''
+
+    outformat = '{:30}{:20}{:10}{:10}{:>12}'
+    print('{:-<82}'.format(''))
+    print("LB VSERVERS")
+    print('{:-<82}'.format(''))
+    print(outformat.format('Name', 'IP', 'Type', 'State', 'Hits'))
+    for one_server in vserver_list:
+        print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['type'], one_server['state'], one_server['tothits']))
+
+def print_stat_services_list(services_list):
+    ''' Prints statistics collected in list of services
+    '''
+
+    outformat = '{:30}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
+    print('{:-<112}'.format(''))
+    print("SERVICES")
+    print('{:-<112}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Req. bytes', 'Resp. bytes', 'Current conn'))
+    for service in services_list:
+        print(outformat.format(service['name'], service['primaryipaddress'], service['primaryport'], service['servicetype'], service['state'], service['totalrequestbytes'], service['totalresponsebytes'], service['curclntconnections']))
+
+
+def print_stat_sg_list(sg_list):
+    ''' Prints statistics collected in list of service groups
+    '''
+
+    outformat = '{:30}{:20}{:10}'
+    print('{:-<82}'.format(''))
+    print("SERVICE GROUPS")
+    print('{:-<82}'.format(''))
+    print(outformat.format('Name', 'Type', 'State'))
+    for one_sg in sg_list:
+        print(outformat.format(one_sg['servicegroupname'], one_sg['servicetype'], one_sg['state']))
+
+def print_stat_sgmember_list(sg_members_list):
+    ''' Prints statistics collected in list of service group members
+    '''
+
+    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
+    print('{:-<132}'.format(''))
+    print("SERVICES")
+    print('{:-<132}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Req. bytes', 'Resp. bytes', 'Current conn'))
+    for sgm in sg_members_list:
+        print(outformat.format(sgm['servicegroupname'], sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], sgm['totalrequestbytes'], sgm['totalresponsebytes'], sgm['curclntconnections']))
 
 
 def init_nitrofn(ns_ip, deb):
