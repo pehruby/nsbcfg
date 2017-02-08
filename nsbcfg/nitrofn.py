@@ -69,11 +69,13 @@ stat_name_list = ["service", "servicegroup", "lbvserver", "csvserver"]      # na
 
 
 
-def get_stat_one_resource(restype, name):
+def get_stat_one_resource(restype, name, args=''):
     ''' Get statistics for one resource
     '''
+    if args:
+        args = '?args=' + args
     try:
-        response = requests.get(nitro_stat_url + restype + '/' + name, headers=json_header, verify=False, cookies=cookie)
+        response = requests.get(nitro_stat_url + restype + '/' + name + args, headers=json_header, verify=False, cookies=cookie)
     except (requests.ConnectionError, requests.ConnectTimeout):
         print("Unable to connect to the server")
         exit(1)
@@ -83,7 +85,7 @@ def get_stat_one_resource(restype, name):
     retjson = body_json[restype]
     return retjson
 
-def get_stat_all_cfg_resource():
+def get_stat_all_cfgfile_resource():
     ''' Get statistics for resources configured in configuration file
     '''
 
@@ -96,10 +98,19 @@ def get_stat_all_cfg_resource():
                 for item in body:
                     res_type_name = resourcetype_name_dict[item_type]   # what is the name of "name" field in this type ?
                     name = str(item[res_type_name])          #  resource name
-                    one_stat = get_stat_one_resource(item_type, name)   # stats for one item of specific item_type
-                    if not stat_all_dict.get(item_type):    # is this item type in dictionary ?
-                        stat_all_dict[item_type] = []       # no, create empty list for item type
-                    stat_all_dict[item_type].append(one_stat)   # add item statistics to list of apropriate item type
+                    if resource_exist(item_type, name):
+                        if not stat_all_dict.get(item_type):    # is this item type in dictionary ?
+                            stat_all_dict[item_type] = []       # no, create empty list for item type
+                        if item_type == 'servicegroup':         # proces servicegroup_servicegroupmember_binding
+                            more_stat = get_stat_cfgfile_servicegroupmember(name)   # get statistics for members of specific servicegroup
+                            for one_sgmember in more_stat:
+                                if not stat_all_dict.get('servicegroupmember'):    # is servicegroupmember type in dictionary ?
+                                    stat_all_dict['servicegroupmember'] = []       # no, create empty list for servicegroupmember
+                                stat_all_dict['servicegroupmember'].append(one_sgmember)
+                        one_stat = get_stat_one_resource(item_type, name)   # stats for one item of specific item_type
+                        stat_all_dict[item_type].append(one_stat)   # add item statistics to list of apropriate item type
+                    else:
+                        print("Resource", name, "doesn't exist")
 
 
                 None
@@ -107,6 +118,22 @@ def get_stat_all_cfg_resource():
 
 
 
+
+
+def get_stat_cfgfile_servicegroupmember(servicegroup):
+    ''' Get statistics for members of specifig servicegroup defined in configuration file
+    '''
+    response = []
+    for cfg_bind in cfg_big_bind:                   # proces cfgs from all binding cfg files
+        if 'servicegroup_binding' in cfg_bind:      # is servicegroup_binding presented ?
+            for sgitem in cfg_bind['servicegroup_binding']:   # process all bindings defined in cfg
+                if sgitem['servicegroupname'] == servicegroup:
+                    if 'servicegroup_servicegroupmember_binding' in sgitem:
+                        for item in sgitem['servicegroup_servicegroupmember_binding']:     # go through all bindings in this servicegroup
+                            one_stat = get_stat_one_resource('servicegroupmember', servicegroup, 'servername:'+item['servername']+',port:'+str(item['port']))
+                            response.append(one_stat)
+
+    return response
 
 
 

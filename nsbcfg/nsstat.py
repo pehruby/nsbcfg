@@ -85,7 +85,7 @@ def main():
     nitrofn.load_json_cfgs2(config_file)
 
 #    nitrofn.get_stat_one_resource('service', 'SVC_PH-TEST-S01_HTTP')
-    nitrofn.get_stat_all_cfg_resource()
+    nitrofn.get_stat_all_cfgfile_resource()
 
     print("Finish")
 
