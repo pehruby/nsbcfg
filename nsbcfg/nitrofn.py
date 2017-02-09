@@ -141,26 +141,31 @@ def print_stat_all_simple():
     '''
 
     print("")
-    print_stat_csvserver_list(stat_all_cfgfiles_dict['csvserver'])
-    print("")
-    print_stat_lbvserver_list(stat_all_cfgfiles_dict['lbvserver'])
-    print("")
-    print_stat_services_list(stat_all_cfgfiles_dict['service'])
-    print("")
-    print_stat_sg_list(stat_all_cfgfiles_dict['servicegroup'])
-    print("")
-    print_stat_sgmember_list(stat_all_cfgfiles_dict['servicegroupmember'])
-    print("")
+    if 'csvserver' in stat_all_cfgfiles_dict.keys():
+        print_stat_csvserver_list(stat_all_cfgfiles_dict['csvserver'])
+        print("")
+    if 'lbvserver' in stat_all_cfgfiles_dict.keys():
+        print_stat_lbvserver_list(stat_all_cfgfiles_dict['lbvserver'])
+        print("")
+    if 'service' in stat_all_cfgfiles_dict.keys():
+        print_stat_services_list(stat_all_cfgfiles_dict['service'])
+        print("")
+    if 'servicegroup' in stat_all_cfgfiles_dict.keys():
+        print_stat_sg_list(stat_all_cfgfiles_dict['servicegroup'])
+        print("")
+    if 'servicegroupmember' in stat_all_cfgfiles_dict.keys():
+        print_stat_sgmember_list(stat_all_cfgfiles_dict['servicegroupmember'])
+        print("")
 
 def print_stat_csvserver_list(vserver_list):
     ''' Prints statistics collected in list of csvservers
     '''
 
-    outformat = '{:30}{:20}{:10}{:10}{:>12}'
-    print('{:-<82}'.format(''))
+    outformat = '{:50}{:20}{:10}{:10}{:>12}'
+    print('{:-<102}'.format(''))
     print("CS VSERVERS")
-    print('{:-<82}'.format(''))
     print(outformat.format('Name', 'IP', 'Type', 'State', 'Hits'))
+    print('{:-<102}'.format(''))
     for one_server in vserver_list:
         print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['type'], one_server['state'], one_server['tothits']))
 
@@ -168,11 +173,11 @@ def print_stat_lbvserver_list(vserver_list):
     ''' Prints statistics collected in list of lbvservers
     '''
 
-    outformat = '{:30}{:20}{:10}{:10}{:>12}'
-    print('{:-<82}'.format(''))
+    outformat = '{:50}{:20}{:10}{:10}{:>12}'
+    print('{:-<102}'.format(''))
     print("LB VSERVERS")
-    print('{:-<82}'.format(''))
     print(outformat.format('Name', 'IP', 'Type', 'State', 'Hits'))
+    print('{:-<102}'.format(''))
     for one_server in vserver_list:
         print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['type'], one_server['state'], one_server['tothits']))
 
@@ -180,11 +185,11 @@ def print_stat_services_list(services_list):
     ''' Prints statistics collected in list of services
     '''
 
-    outformat = '{:30}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
-    print('{:-<112}'.format(''))
+    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
+    print('{:-<132}'.format(''))
     print("SERVICES")
-    print('{:-<112}'.format(''))
-    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Req. bytes', 'Resp. bytes', 'Current conn'))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Request B', 'Response B', 'Current conn'))
+    print('{:-<132}'.format(''))
     for service in services_list:
         print(outformat.format(service['name'], service['primaryipaddress'], service['primaryport'], service['servicetype'], service['state'], service['totalrequestbytes'], service['totalresponsebytes'], service['curclntconnections']))
 
@@ -193,11 +198,11 @@ def print_stat_sg_list(sg_list):
     ''' Prints statistics collected in list of service groups
     '''
 
-    outformat = '{:30}{:20}{:10}'
-    print('{:-<82}'.format(''))
+    outformat = '{:50}{:20}{:10}'
+    print('{:-<102}'.format(''))
     print("SERVICE GROUPS")
-    print('{:-<82}'.format(''))
     print(outformat.format('Name', 'Type', 'State'))
+    print('{:-<102}'.format(''))
     for one_sg in sg_list:
         print(outformat.format(one_sg['servicegroupname'], one_sg['servicetype'], one_sg['state']))
 
@@ -205,13 +210,13 @@ def print_stat_sgmember_list(sg_members_list):
     ''' Prints statistics collected in list of service group members
     '''
 
-    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
-    print('{:-<132}'.format(''))
+    outformat = '{:70}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
+    print('{:-<152}'.format(''))
     print("SERVICES")
-    print('{:-<132}'.format(''))
-    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Req. bytes', 'Resp. bytes', 'Current conn'))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Request B', 'Response B', 'Current conn'))
+    print('{:-<152}'.format(''))
     for sgm in sg_members_list:
-        print(outformat.format(sgm['servicegroupname'], sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], sgm['totalrequestbytes'], sgm['totalresponsebytes'], sgm['curclntconnections']))
+        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], sgm['totalrequestbytes'], sgm['totalresponsebytes'], sgm['curclntconnections']))
 
 
 def init_nitrofn(ns_ip, deb):
