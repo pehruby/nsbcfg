@@ -40,10 +40,12 @@ resourcetype_name_dict = {'server':'name', \
                             "cspolicy":"policyname", \
                             "rewritepolicy":"name", \
                             "rewriteaction":"name", \
+                            "responderpolicy":"name", \
+                            "responderaction":"name", \
                             "sslprofile":"name",\
                             "service":"name",\
                             "lbgroup":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
-resourcetype_list = ["rewriteaction", "rewritepolicy", "sslprofile", "cspolicy", "csvserver", \
+resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "cspolicy", "csvserver", \
                     "lbvserver", "servicegroup", "server", "lbmonitor", "service", "lbgroup"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
 dont_process_at_beg_list = ["lbgroup"]      # don't create this resources at the beginning
@@ -67,6 +69,31 @@ general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "lbgroup_lbvserver_binding":"vservername"}
 stat_name_list = ["service", "servicegroup", "lbvserver", "csvserver"]      # name of items which are we going to get statistics for
 
+
+
+def get_nitro_resources(typ, parameters=''):
+    ''' Get resources od specified type, parametrs could by filter, view, ... see NITRO docs
+    '''
+    if parameters:
+        parameters = '?'+ parameters
+    try:
+        response = requests.get(nitro_config_url + typ + parameters, headers=json_header, verify=False, cookies=cookie)
+    except (requests.ConnectionError, requests.ConnectTimeout):
+        print("Chyba pri pripojeni k serveru")
+        exit(1)
+    if response.status_code != 200:
+        print("Error during get_nitro_resources", "http status kod:", response.status_code)
+        print("Response text", response.text)
+        return False
+    # else:
+        # print("Successfuly binded", item['vservername'], "to", item['ecccurvename'])
+
+
+def get_csvs_list_by_ip_address(csvsip):
+    ''' Get list of CS vservers with specified IP address configured
+    '''
+
+    None
 
 
 def get_stat_one_resource(restype, name, args=''):
@@ -726,6 +753,22 @@ def bind_one_lbvs(onelbvs):
                 return False
             else:
                 print("Successfuly binded", item['servicename'], "to", item['name'])
+
+    if 'lbvserver_responderpolicy_binding' in onelbvs:
+        for item in onelbvs['lbvserver_responderpolicy_binding']:     # bind all services to LBVS
+            body = {'lbvserver_responderpolicy_binding' : item}
+            try:
+                debug_print("Binding", item['policyname'], "to", item['name'])
+                response = requests.put(nitro_config_url + 'lbvserver_responderpolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Chyba pri pripojeni k serveru")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu service", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['policyname'], "to", item['name'])
 
     return True
 
