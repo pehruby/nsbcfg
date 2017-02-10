@@ -53,7 +53,8 @@ update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["serv
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
 svc_parametr_name_dict = {"service_lbmonitor_binding":"monitor_name"}
-vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname"}
+vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname", \
+                        "lbvserver_responderpolicy_binding":"policyname"}
 cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname", \
                          "csvserver_rewritepolicy_binding":"policyname"}           # name of binded item in CSVS
 sslvs_parametr_name_dict = {"sslvserver_ecccurve_binding":"ecccurvename", "sslvserver_sslcertkey_binding":"certkeyname"}
