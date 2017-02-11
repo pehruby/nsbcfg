@@ -72,13 +72,18 @@ stat_name_list = ["service", "servicegroup", "lbvserver", "csvserver"]      # na
 
 
 
-def get_nitro_resources(typ, parameters=''):
+def get_nitro_resources(restype, resname='', parameters=''):
     ''' Get resources od specified type, parametrs could by filter, view, ... see NITRO docs
     '''
     if parameters:
         parameters = '?'+ parameters
+
+    if resname:
+        wholeurl = nitro_config_url + restype + '/' + resname + parameters      # name is specifies
+    else:
+        wholeurl = nitro_config_url + restype + parameters
     try:
-        response = requests.get(nitro_config_url + typ + parameters, headers=json_header, verify=False, cookies=cookie)
+        response = requests.get(wholeurl, headers=json_header, verify=False, cookies=cookie)
     except (requests.ConnectionError, requests.ConnectTimeout):
         print("Chyba pri pripojeni k serveru")
         exit(1)
@@ -88,13 +93,111 @@ def get_nitro_resources(typ, parameters=''):
         return False
     # else:
         # print("Successfuly binded", item['vservername'], "to", item['ecccurvename'])
+    body_json = json.loads(response.text)
+    if restype in body_json:
+        retjson = body_json[restype]
+        return retjson
+    return []
 
 
-def get_csvs_list_by_ip_address(csvsip):
-    ''' Get list of CS vservers with specified IP address configured
+def get_vs_list_by_ip_address_port(vstype, vsip, port=0):
+    ''' Get list of vservers with specified IP address and port configured
+        vstype is csvserver or lbvserver
     '''
 
-    None
+    vs_list = []
+    param = 'filter=ipv46:'+ vsip
+    if port:
+        param = param + ",port:" + port
+
+    resp = get_nitro_resources(vstype, '', param)
+    for vs in resp:
+        vs_list.append(vs['name'])
+    return vs_list
+
+def get_lbvs_list_under_csvs(csvs):
+    ''' Get list of lbvservers configured under specific csvserver
+    '''
+
+    lbvslist = []
+    resp = get_nitro_resources('csvserver_binding', csvs)
+
+    for csvsbind in resp:           # go through bindings of all csvserver
+        if 'csvserver_lbvserver_binding' in csvsbind:     # does this key exist?
+            cont_bind = csvsbind['csvserver_lbvserver_binding']
+            for onelbvsbin in cont_bind:
+                lbvs = onelbvsbin['lbvserver']
+                lbvslist.append(lbvs)
+        if 'csvserver_cspolicy_binding' in csvsbind:     # does this key exist?
+            cont_bind = csvsbind['csvserver_cspolicy_binding']
+            for onecspolicybind in cont_bind:           # go through all cspolicy bindings
+                lbvs = onecspolicybind['targetlbvserver']
+                lbvslist.append(lbvs)
+
+    return lbvslist
+
+def get_svc_list_under_lbvs(lbvs):
+    ''' Get list of services configured under specific lbvserver
+    '''
+
+    svclist = []
+    resp = get_nitro_resources('lbvserver_binding', lbvs)
+
+    for lbvsbind in resp:           # go through bindings of all lbvserver () probably just one lbvs ...)
+        if 'lbvserver_service_binding' in lbvsbind:     # does this key exist?
+            cont_bind = lbvsbind['lbvserver_service_binding']
+            for onelbvsbin in cont_bind:
+                svc = onelbvsbin['servicename']
+                svclist.append(svc)
+    return svclist
+
+def get_sg_list_under_lbvs(lbvs):
+    ''' Get list of service groups configured under specific lbvserver
+    '''
+
+    sglist = []
+    resp = get_nitro_resources('lbvserver_binding', lbvs)
+
+    for lbvsbind in resp:           # go through bindings of all lbvserver () probably just one lbvs ...)
+        if 'lbvserver_servicegroup_binding' in lbvsbind:     # does this key exist?
+            cont_bind = lbvsbind['lbvserver_servicegroup_binding']
+            for onelbvsbin in cont_bind:
+                sg = onelbvsbin['servicegroupname']
+                sglist.append(sg)
+    return sglist
+
+def load_resource_name_tree_under_ip_port(ip, port=0):
+    ''' Loads names of resources "under" specific IP addres (and port)
+    '''
+    resourcesdict = {'csvserver':[], 'lbvserver':[], 'service':[], 'servicegroup':[]}
+
+    csvslist = get_vs_list_by_ip_address_port('csvserver', ip, port)
+    for csvservername in csvslist:              # go thoug all csvserver names contained in csvslist
+        #if not 'csvserver' in resourcesdict:     # csvserver in dictionaty ?
+         #   resourcesdict['csvserver'] = []     # no, create empty list
+        resourcesdict['csvserver'].append(csvservername)    # add csvs name to list
+    lbvslist = get_vs_list_by_ip_address_port('lbvserver', ip, port)
+    for lbvservername in lbvslist:              # go thoug all lbvserver names contained in lbvslist
+        #if not 'lbvserver' in resourcesdict:     # lbvserver in dictionaty ?
+        #    resourcesdict['lbvserver'] = []     # no, create empty list
+        resourcesdict['lbvserver'].append(lbvservername)    # add lbvs name to list
+
+    for csvsname in resourcesdict['csvserver']:
+        lbvslist = get_lbvs_list_under_csvs(csvsname)
+        for lbvservername in lbvslist:
+            resourcesdict['lbvserver'].append(lbvservername)
+
+    for lbvsname in resourcesdict['lbvserver']:
+        svclist = get_svc_list_under_lbvs(lbvsname)
+        for svcname in svclist:
+            resourcesdict['service'].append(svcname)
+        sglist = get_sg_list_under_lbvs(lbvsname)
+        for sgname in sglist:
+            resourcesdict['servicegroup'].append(sgname)
+
+    return resourcesdict
+
+
 
 
 def get_stat_one_resource(restype, name, args=''):
@@ -143,6 +246,32 @@ def get_stat_all_cfgfile_resource():
                         print("Resource", name, "doesn't exist")
 
 
+def get_stat_all_dict(resdict):
+    ''' Get statistics for resources specified in resdict dictionary
+    '''
+    stat_all_dict = {}
+    for item_type in resdict:           # go through all item types }lbvserver, csvserver, servicegroup,...)
+        namelist = resdict[item_type]   # go through all names of specific type
+        for name in namelist:
+            if item_type == 'servicegroup':
+                resp = get_nitro_resources('servicegroup_binding', name)    # get config of specific servicegroup
+                respitem = resp[0]
+                if 'servicegroup_servicegroupmember_binding' in respitem:   # is sg member binding configured ?
+                    for sg_member in respitem['servicegroup_servicegroupmember_binding']:   # go through of member servers
+                        one_stat = get_stat_one_resource('servicegroupmember', sg_member['servicegroupname'], 'servername:'+sg_member['servername']+',port:'+str(sg_member['port']))
+                        if one_stat:            # statistics for one member server
+                            if not 'servicegroupmember' in stat_all_dict:
+                                stat_all_dict['servicegroupmember'] = []
+                            stat_all_dict['servicegroupmember'].append(one_stat[0])
+            one_stat = get_stat_one_resource(item_type, name)   # statistics for specific resource
+            if one_stat:
+                if not item_type in stat_all_dict:
+                    stat_all_dict[item_type] = []
+                stat_all_dict[item_type].append(one_stat[0])    # append to all statistics dictionary
+
+    return stat_all_dict
+
+
 
 
 
@@ -163,26 +292,39 @@ def get_stat_cfgfile_servicegroupmember(servicegroup):
 
     return response
 
+def get_and_print_stat_all_cfgfile_simple():
+    ''' Get and print statistics for resources configured in cfgfile
+    '''
+    get_stat_all_cfgfile_resource()
+    print_stat_all_simple(stat_all_cfgfiles_dict)       # dirty, redesign ... !!!
 
-def print_stat_all_simple():
-    ''' Prints statistics collected in stat_all_cfgfiles_dict (items configured in config files)
+def get_and_print_stat_under_ip_port_simple(ip, port=0):
+    ''' Get and print statistics for resources configured under specific IP and port
+    '''
+    tmpdict = load_resource_name_tree_under_ip_port(ip, port)
+    stat = get_stat_all_dict(tmpdict)
+    print_stat_all_simple(stat)
+
+
+def print_stat_all_simple(stat_dict):
+    ''' Prints statistics collected in stat_dict
     '''
 
     print("")
-    if 'csvserver' in stat_all_cfgfiles_dict.keys():
-        print_stat_csvserver_list(stat_all_cfgfiles_dict['csvserver'])
+    if 'csvserver' in stat_dict.keys():
+        print_stat_csvserver_list(stat_dict['csvserver'])
         print("")
-    if 'lbvserver' in stat_all_cfgfiles_dict.keys():
-        print_stat_lbvserver_list(stat_all_cfgfiles_dict['lbvserver'])
+    if 'lbvserver' in stat_dict.keys():
+        print_stat_lbvserver_list(stat_dict['lbvserver'])
         print("")
-    if 'service' in stat_all_cfgfiles_dict.keys():
-        print_stat_services_list(stat_all_cfgfiles_dict['service'])
+    if 'service' in stat_dict.keys():
+        print_stat_services_list(stat_dict['service'])
         print("")
-    if 'servicegroup' in stat_all_cfgfiles_dict.keys():
-        print_stat_sg_list(stat_all_cfgfiles_dict['servicegroup'])
+    if 'servicegroup' in stat_dict.keys():
+        print_stat_sg_list(stat_dict['servicegroup'])
         print("")
-    if 'servicegroupmember' in stat_all_cfgfiles_dict.keys():
-        print_stat_sgmember_list(stat_all_cfgfiles_dict['servicegroupmember'])
+    if 'servicegroupmember' in stat_dict.keys():
+        print_stat_sgmember_list(stat_dict['servicegroupmember'])
         print("")
 
 def print_stat_csvserver_list(vserver_list):
