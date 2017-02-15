@@ -313,56 +313,58 @@ def print_stat_all_simple(stat_dict):
     print("")
     if 'csvserver' in stat_dict.keys():
         print_stat_csvserver_list(stat_dict['csvserver'])
-        print("")
+        print("\n")
     if 'lbvserver' in stat_dict.keys():
         print_stat_lbvserver_list(stat_dict['lbvserver'])
-        print("")
+        print("\n")
     if 'service' in stat_dict.keys():
         print_stat_services_list(stat_dict['service'])
-        print("")
+        print("\n")
     if 'servicegroup' in stat_dict.keys():
         print_stat_sg_list(stat_dict['servicegroup'])
-        print("")
+        print("\n")
     if 'servicegroupmember' in stat_dict.keys():
         print_stat_sgmember_list(stat_dict['servicegroupmember'])
-        print("")
+        print("\n")
 
 def print_stat_csvserver_list(vserver_list):
     ''' Prints statistics collected in list of csvservers
     '''
 
-    outformat = '{:50}{:20}{:10}{:10}{:>12}'
-    print('{:-<102}'.format(''))
+    outformat = '{:50}{:20}{:>6} {:10}{:10}{:>12}'
+    print('{:-<109}'.format(''))
     print("CS VSERVERS")
-    print(outformat.format('Name', 'IP', 'Type', 'State', 'Hits'))
-    print('{:-<102}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Hits'))
+    print('{:-<109}'.format(''))
     for one_server in vserver_list:
-        print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['type'], one_server['state'], one_server['tothits']))
+        print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['primaryport'], one_server['type'], one_server['state'], one_server['tothits']))
+    print('{:-<109}'.format(''))
 
 def print_stat_lbvserver_list(vserver_list):
     ''' Prints statistics collected in list of lbvservers
     '''
 
-    outformat = '{:50}{:20}{:10}{:10}{:>12}'
-    print('{:-<102}'.format(''))
+    outformat = '{:50}{:20}{:>6} {:10}{:10}{:>12}'
+    print('{:-<109}'.format(''))
     print("LB VSERVERS")
-    print(outformat.format('Name', 'IP', 'Type', 'State', 'Hits'))
-    print('{:-<102}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Hits'))
+    print('{:-<109}'.format(''))
     for one_server in vserver_list:
-        print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['type'], one_server['state'], one_server['tothits']))
+        print(outformat.format(one_server['name'], one_server['primaryipaddress'], one_server['primaryport'], one_server['type'], one_server['state'], one_server['tothits']))
+    print('{:-<109}'.format(''))
 
 def print_stat_services_list(services_list):
     ''' Prints statistics collected in list of services
     '''
 
-    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
+    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>10}'
     print('{:-<132}'.format(''))
     print("SERVICES")
-    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Request B', 'Response B', 'Current conn'))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Request B', 'Response B', 'Act conn'))
     print('{:-<132}'.format(''))
     for service in services_list:
-        print(outformat.format(service['name'], service['primaryipaddress'], service['primaryport'], service['servicetype'], service['state'], service['totalrequestbytes'], service['totalresponsebytes'], service['curclntconnections']))
-
+        print(outformat.format(service['name'], service['primaryipaddress'], service['primaryport'], service['servicetype'], service['state'], trim_string(service['totalrequestbytes'], 10), trim_string(service['totalresponsebytes'], 10), service['curclntconnections']))
+    print('{:-<132}'.format(''))
 
 def print_stat_sg_list(sg_list):
     ''' Prints statistics collected in list of service groups
@@ -375,18 +377,33 @@ def print_stat_sg_list(sg_list):
     print('{:-<102}'.format(''))
     for one_sg in sg_list:
         print(outformat.format(one_sg['servicegroupname'], one_sg['servicetype'], one_sg['state']))
+    print('{:-<102}'.format(''))
 
 def print_stat_sgmember_list(sg_members_list):
     ''' Prints statistics collected in list of service group members
     '''
 
-    outformat = '{:70}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>15}'
-    print('{:-<152}'.format(''))
+    outformat = '{:70}{:16}{:>6} {:10}{:10}{:>12}{:>12}{:>10}'
+    print('{:-<147}'.format(''))
     print("SERVICES")
-    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Request B', 'Response B', 'Current conn'))
-    print('{:-<152}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Request B', 'Response B', 'Act conn'))
+    print('{:-<147}'.format(''))
     for sgm in sg_members_list:
-        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], sgm['totalrequestbytes'], sgm['totalresponsebytes'], sgm['curclntconnections']))
+        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], trim_string(sgm['totalrequestbytes'], 10), trim_string(sgm['totalresponsebytes'], 10), sgm['curclntconnections']))
+    print('{:-<147}'.format(''))
+
+
+def trim_string(string, length, where='left'):
+    ''' Trim string to specific length
+    '''
+    tmplen = length-1
+    if len(string) > tmplen:
+        if where == 'left':
+            string = '>' + string[-tmplen:]
+        if where == 'right':
+            string = string[:tmplen] + '>'
+    return string
+
 
 
 def init_nitrofn(ns_ip, deb):
@@ -1147,6 +1164,39 @@ def is_ip_valid(testedip):
         result = False
 
     return result
+
+def is_ip_port_valid(testedipport):
+    ''' Is testedipport valid IP_addr:port string?
+    '''
+    if ':' in testedipport:
+        res = testedipport.split(':')
+        if len(res) > 2:
+            return False
+        if len(res) == 1:
+            if is_ip_valid(res[0]):
+                return True
+        try:
+            portn = int(res[1])
+        except ValueError:
+            return False
+        if (portn <= 65535) and (portn > 0):
+            return True
+        return False
+    return is_ip_valid(testedipport)
+
+
+def get_ip_and_port_from_string(ipport):
+    ''' Returns IP (and port) from IP_addr:port string
+    '''
+    #outlist = []
+    if ':' in ipport:
+        return ipport.split(':')
+    #outlist.append(ipport)
+    return [ipport, '']
+
+    
+
+
 
 def debug_print(*string):
     ''' Print debug info
