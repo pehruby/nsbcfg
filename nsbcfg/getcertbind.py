@@ -95,15 +95,20 @@ def main():
         print("")
         print("Certificate", cert, "(expire in", cert_exp_dict[cert], "days) is binded to:")
         cert_bind = nitrofn.get_nitro_resources('sslcertkey_sslvserver_binding', cert)       # get vservers binded to specific certificate
+        isone = False
         for binding in cert_bind:
             if nitrofn.resource_exist("csvserver", binding['servername']):           # is it csvserver?
                 vserver = nitrofn.get_nitro_resources('csvserver', binding['servername'])
                 if (vserver[0]['ipv46'] == '0.0.0.0' and zeroip) or vserver[0]['ipv46'] != '0.0.0.0':
-                    print(print_format.format('csvserver', vserver[0]['name'], 'IP:', vserver[0]['ipv46']))
+                    print(print_format.format('csvserver', nitrofn.trim_string(vserver[0]['name'], 50, 'right'), 'IP:', vserver[0]['ipv46']))
+                    isone = True
             elif nitrofn.resource_exist("lbvserver", binding['servername']):
                 vserver = nitrofn.get_nitro_resources('lbvserver', binding['servername'])     # is it lbvserver?
                 if (vserver[0]['ipv46'] == '0.0.0.0' and zeroip) or vserver[0]['ipv46'] != '0.0.0.0':
-                    print(print_format.format('lbvserver', vserver[0]['name'], 'IP:', vserver[0]['ipv46']))
+                    print(print_format.format('lbvserver', nitrofn.trim_string(vserver[0]['name'], 50, 'right'), 'IP:', vserver[0]['ipv46']))
+                    isone = True
+        if not isone:
+            print("... nothing")
 
 
 
