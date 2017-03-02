@@ -16,10 +16,10 @@ def main():
     username = ''
     pswd = ''
     debug = False
-    zeroip = False
+    zeroip = False              # print servers with IP 0.0.0.0 ?
     cert_name = ''
-    cert_list = []
-    cert_exp_dict = {}
+    cert_list = []              # list of certificates
+    cert_exp_dict = {}          # certificate expiration days 
 
     usage_str = '''
     Prints vservers (with IP addresses) binded to SSL certificate(s)
@@ -91,7 +91,12 @@ def main():
     print_format = '{:10}{:50}{:4}{:15}'
     for cert in cert_list:                  # process all certificates
         print("")
-        print("Certificate", cert, "(expire in", cert_exp_dict[cert], "days) is binded to:")
+        print("Certificate", cert, "(expire in", cert_exp_dict[cert], "days)")
+        cert_det = nitrofn.get_nitro_resources('sslcertkey', cert)       # certificate details
+        print("Issuer: ", cert_det[0]['issuer'])
+        print("Subject:", cert_det[0]['subject'])
+        print("Serial:  ", cert_det[0]['serial'])
+        print("is binded to")
         cert_bind = nitrofn.get_nitro_resources('sslcertkey_sslvserver_binding', cert)       # get vservers binded to specific certificate
         isone = False
         for binding in cert_bind:           # process all servers binded to specific certificate
