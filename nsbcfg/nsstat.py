@@ -37,6 +37,9 @@ def main():
     except getopt.GetoptError:
         print(usage_str)
         sys.exit(2)
+    if not opts:                    # no arguments
+        print(usage_str)
+        sys.exit()  
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             print(usage_str)
