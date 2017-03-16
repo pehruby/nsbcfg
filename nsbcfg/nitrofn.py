@@ -6,6 +6,8 @@ import os
 import sys
 
 requests.packages.urllib3.disable_warnings()
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 nitro_config_url = ""
 nitro_stat_url = ""
@@ -228,6 +230,7 @@ def get_stat_all_cfgfile_resource():
 
 #                item_name = body[restype_name]
                 for item in body:
+                    # print('.', end='')
                     res_type_name = resourcetype_name_dict[item_type]   # what is the name of "name" field in this type ?
                     name = str(item[res_type_name])          #  resource name
                     if resource_exist(item_type, name):
@@ -244,6 +247,7 @@ def get_stat_all_cfgfile_resource():
                             stat_all_cfgfiles_dict[item_type].append(one_stat[0])   # add item statistics to list of apropriate item type, statistics dict is first (and only one) item in list, that's why [0]
                     else:
                         print("Resource", name, "doesn't exist")
+    # print("")
 
 
 def get_stat_all_dict(resdict):
@@ -260,7 +264,7 @@ def get_stat_all_dict(resdict):
                     for sg_member in respitem['servicegroup_servicegroupmember_binding']:   # go through of member servers
                         one_stat = get_stat_one_resource('servicegroupmember', sg_member['servicegroupname'], 'servername:'+sg_member['servername']+',port:'+str(sg_member['port']))
                         if one_stat:            # statistics for one member server
-                            if not 'servicegroupmember' in stat_all_dict:
+                            if 'servicegroupmember' not in stat_all_dict:
                                 stat_all_dict['servicegroupmember'] = []
                             stat_all_dict['servicegroupmember'].append(one_stat[0])
             one_stat = get_stat_one_resource(item_type, name)   # statistics for specific resource
