@@ -46,11 +46,12 @@ resourcetype_name_dict = {'server':'name', \
                             "responderaction":"name", \
                             "sslprofile":"name",\
                             "service":"name",\
-                            "lbgroup":"name"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
+                            "lbgroup":"name",\
+                            "sslservice":"servicename"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
 resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "cspolicy", "csvserver", \
-                    "lbvserver", "servicegroup", "server", "lbmonitor", "service", "lbgroup"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                    "lbvserver", "servicegroup", "server", "lbmonitor", "service", "lbgroup", "sslservice"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
-dont_process_at_beg_list = ["lbgroup"]      # don't create this resources at the beginning
+dont_process_at_beg_list = ["lbgroup", "sslservice"]      # don't create this resources at the beginning
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
                         "csvserver":["port", "td", "servicetype", "range"]}                          # ktere polozky je treba odstranit pri update daneho typu
 sg_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name", "servicegroup_servicegroupmember_binding":"servername"}
