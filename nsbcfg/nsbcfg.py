@@ -108,7 +108,7 @@ def main():
         nitrofn.bind_all_csvs()
         nitrofn.bind_all_sslvs()
         nitrofn.process_one_item_from_cfgs('lbgroup', 'update')
-        nitrofn.process_one_item_from_cfgs('sslservice', 'update')
+        nitrofn.process_one_item_from_cfgs('sslservice', 'update')  # this item doesn't have Create, just Update method. Updates lbsvc item of type SSL.
 
     elif paction in ['delete', 'd']:
 
