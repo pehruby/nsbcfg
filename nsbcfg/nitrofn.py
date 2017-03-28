@@ -88,7 +88,7 @@ def get_nitro_resources(restype, resname='', parameters=''):
     try:
         response = requests.get(wholeurl, headers=json_header, verify=False, cookies=cookie)
     except (requests.ConnectionError, requests.ConnectTimeout):
-        print("Chyba pri pripojeni k serveru")
+        print("Connection error")
         exit(1)
     if response.status_code != 200:
         print("Error during get_nitro_resources", "http status kod:", response.status_code)
@@ -455,7 +455,7 @@ def create_update_delete_resource(restype, name, body, action='delete'):
                 urlarg = "?args=type:"+str(body['lbmonitor']['type'])
             response = requests.delete(nitro_config_url + '/' + restype + '/'+ name + urlarg, headers=json_header, verify=False, cookies=cookie)
     except (requests.ConnectionError, requests.ConnectTimeout):
-        print("Chyba pri pripojeni k serveru")
+        print("Connection error")
         exit(1)
     if (response.status_code != 200) and (response.status_code != 201):
         print("Chyba pri create/update/delete", restype, name, "http status kod:", response.status_code)
@@ -611,7 +611,7 @@ def create_update(body, action='create'):                  # it creates/updates 
             # print("Deleting", typ, name)
             create_update_delete_resource(typ, name, action_body)
     #    except:
-    #        print("Chyba pri pripojeni k serveru")
+    #        print("Connection error")
     #        exit(1)
     #    if (response.status_code != 200) and (response.status_code != 201):
     #        print("Chyba pri create/update", typ, name, "http status kod:", response.status_code)
@@ -692,7 +692,7 @@ def bind_one_sslvs(onesslvs):
                 debug_print("Binding", item['vservername'], "to", item['ecccurvename'])
                 response = requests.put(nitro_config_url + 'sslvserver_ecccurve_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu ECC curve na CSVS", "http status kod:", response.status_code)
@@ -708,7 +708,7 @@ def bind_one_sslvs(onesslvs):
                 debug_print("Binding", item['vservername'], "to", item['certkeyname'])
                 response = requests.put(nitro_config_url + 'sslvserver_sslcertkey_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu certkey na CSVS", "http status kod:", response.status_code)
@@ -801,7 +801,7 @@ def bind_one_csvs(onecsvs):
                 debug_print("Binding", item['lbvserver'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'csvserver_lbvserver_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu default LBVS na CSVS", "http status kod:", response.status_code)
@@ -817,7 +817,7 @@ def bind_one_csvs(onecsvs):
                 debug_print("Binding", item['policyname'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'csvserver_cspolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu policy na CSVS", "http status kod:", response.status_code)
@@ -833,7 +833,7 @@ def bind_one_csvs(onecsvs):
                 debug_print("Binding", item['policyname'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'csvserver_rewritepolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu rewrite policy na CSVS", "http status kod:", response.status_code)
@@ -893,11 +893,14 @@ def bind_one_lbvs(onelbvs):
             try:
                 debug_print("Binding", item['servicegroupname'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'lbvserver_servicegroup_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
-            except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+            except requests.exceptions.ConnectionError:
+                print("Connection error")
+                exit(1)
+            except KeyError as e:
+                print("Keyerror", e)
                 exit(1)
             if response.status_code != 200:
-                print("Chyba pri bindingu servicegroup", "http status kod:", response.status_code)
+                print("Service binding errorgroup", "http status kod:", response.status_code)
                 print("Response text", response.text)
                 return False
             else:
@@ -909,11 +912,14 @@ def bind_one_lbvs(onelbvs):
             try:
                 debug_print("Binding", item['servicename'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'lbvserver_service_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
-            except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+            except requests.exceptions.ConnectionError:
+                print("Connection error")
+                exit(1)
+            except KeyError as e:
+                print("Keyerror", e)
                 exit(1)
             if response.status_code != 200:
-                print("Chyba pri bindingu service", "http status kod:", response.status_code)
+                print("Service binding error", "http status kod:", response.status_code)
                 print("Response text", response.text)
                 return False
             else:
@@ -925,11 +931,14 @@ def bind_one_lbvs(onelbvs):
             try:
                 debug_print("Binding", item['policyname'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'lbvserver_responderpolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
-            except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+            except requests.exceptions.ConnectionError:
+                print("Connection error")
+                exit(1)
+            except KeyError as e:
+                print("Keyerror", e)
                 exit(1)
             if response.status_code != 200:
-                print("Chyba pri bindingu service", "http status kod:", response.status_code)
+                print("Service binding error", "http status kod:", response.status_code)
                 print("Response text", response.text)
                 return False
             else:
@@ -992,7 +1001,7 @@ def bind_one_lbsg(onelbsg):
                 debug_print("Binding", item['servername'], "to", item['servicegroupname'])
                 response = requests.put(nitro_config_url + 'servicegroup_servicegroupmember_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
@@ -1008,7 +1017,7 @@ def bind_one_lbsg(onelbsg):
                 debug_print("Binding", item['monitor_name'], "to", item['servicegroupname'])
                 response = requests.put(nitro_config_url + 'servicegroup_lbmonitor_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu monitoru", "http status kod:", response.status_code)
@@ -1039,7 +1048,7 @@ def bind_one_lbsvc(onelbsg):
                 debug_print("Binding", item['monitor_name'], "to", item['name'])
                 response = requests.put(nitro_config_url + 'service_lbmonitor_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
             except (requests.ConnectionError, requests.ConnectTimeout):
-                print("Chyba pri pripojeni k serveru")
+                print("Connection error")
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
@@ -1097,7 +1106,7 @@ def bind_general(name):
                             debug_print("Binding", cfgbody[general_parametr_name_dict[key]], "to", actname)
                             response = requests.put(nitro_config_url + key, headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
                         except (requests.ConnectionError, requests.ConnectTimeout):
-                            print("Chyba pri pripojeni k serveru")
+                            print("Connection error")
                             exit(1)
                         if response.status_code != 200:
                             print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
