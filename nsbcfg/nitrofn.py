@@ -40,6 +40,7 @@ resourcetype_name_dict = {'server':'name', \
                             'lbvserver':"name", \
                             "csvserver":"name", \
                             "cspolicy":"policyname", \
+                            "csaction":"name",\
                             "rewritepolicy":"name", \
                             "rewriteaction":"name", \
                             "responderpolicy":"name", \
@@ -47,9 +48,9 @@ resourcetype_name_dict = {'server':'name', \
                             "sslprofile":"name",\
                             "service":"name",\
                             "lbgroup":"name",\
-                            "sslservice":"servicename"}    # jak se jmenuje polozka se jmenem u jednotlivych typu
-resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "cspolicy", "csvserver", \
-                    "lbvserver", "servicegroup", "server", "lbmonitor", "service", "lbgroup", "sslservice"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                            "sslservice":"servicename"}    # name of item which contains name of specific type
+resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "csvserver", \
+                    "lbvserver", "servicegroup", "server", "lbmonitor", "csaction", "cspolicy", "service", "lbgroup", "sslservice"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
 dont_process_at_beg_list = ["lbgroup", "sslservice"]      # don't create this resources at the beginning
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
