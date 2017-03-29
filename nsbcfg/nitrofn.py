@@ -170,16 +170,20 @@ def get_sg_list_under_lbvs(lbvs):
                 sglist.append(sg)
     return sglist
 
-def load_resource_name_tree_under_ip_port(ip, port=0):
-    ''' Loads names of resources "under" specific IP addres (and port)
+def load_resource_name_tree_under_ip_port(ip, port=0, tecky=False):
+    ''' Loads names of resources "under" specific IP addres (and port). If tecky, points are printed to stdout
     '''
     resourcesdict = {'csvserver':[], 'lbvserver':[], 'service':[], 'servicegroup':[]}
 
+    if tecky:
+        print('.', end='', flush=True)
     csvslist = get_vs_list_by_ip_address_port('csvserver', ip, port)
     for csvservername in csvslist:              # go thoug all csvserver names contained in csvslist
         #if not 'csvserver' in resourcesdict:     # csvserver in dictionaty ?
          #   resourcesdict['csvserver'] = []     # no, create empty list
         resourcesdict['csvserver'].append(csvservername)    # add csvs name to list
+    if tecky:
+        print('.', end='', flush=True)
     lbvslist = get_vs_list_by_ip_address_port('lbvserver', ip, port)
     for lbvservername in lbvslist:              # go thoug all lbvserver names contained in lbvslist
         #if not 'lbvserver' in resourcesdict:     # lbvserver in dictionaty ?
@@ -187,18 +191,26 @@ def load_resource_name_tree_under_ip_port(ip, port=0):
         resourcesdict['lbvserver'].append(lbvservername)    # add lbvs name to list
 
     for csvsname in resourcesdict['csvserver']:
+        if tecky:
+            print('.', end='', flush=True)
         lbvslist = get_lbvs_list_under_csvs(csvsname)
         for lbvservername in lbvslist:
             resourcesdict['lbvserver'].append(lbvservername)
 
     for lbvsname in resourcesdict['lbvserver']:
+        if tecky:
+            print('.', end='', flush=True)
         svclist = get_svc_list_under_lbvs(lbvsname)
         for svcname in svclist:
             resourcesdict['service'].append(svcname)
+        if tecky:
+            print('.', end='', flush=True)
         sglist = get_sg_list_under_lbvs(lbvsname)
         for sgname in sglist:
             resourcesdict['servicegroup'].append(sgname)
 
+    if tecky:
+        print('.', end='', flush=True)
     return resourcesdict
 
 
@@ -307,7 +319,7 @@ def get_and_print_stat_all_cfgfile_simple():
 def get_and_print_stat_under_ip_port_simple(ip, port=0):
     ''' Get and print statistics for resources configured under specific IP and port
     '''
-    tmpdict = load_resource_name_tree_under_ip_port(ip, port)
+    tmpdict = load_resource_name_tree_under_ip_port(ip, port, True)
     stat = get_stat_all_dict(tmpdict)
     print_stat_all_simple(stat)
 
