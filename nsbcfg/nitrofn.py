@@ -588,20 +588,22 @@ def load_cfgs2(config_file, file_type='YAML'):
                     # if name of item which we are going to bind to is not specified add it from item which we are going to bind to
                     binded_res = key.split("_binding")[0]       # binded_res = substring before _binding (i.e servicegroup, ...)
                     res_type_name = resourcetype_name_dict[binded_res]   # name of the item which contains resource name
+                    binded_item_nr = 0      # item number under specific binding (i.e under lbvserver_binding,...)
                     for binded_res_item in resource[key]:
                         item_name = binded_res_item[res_type_name]    # name of specific item to which we are goig to bind, i.e SG_PYTEST1_HTTP, LBVS_PYTEST1_HTTP, ...
                         for binded_item_name in binded_res_item.keys():
                             if binded_item_name == res_type_name:
-                                continue            # skip item where item_name is specified
+                                continue            # skip item where item_name is configured, i.e. the item which name will be used in child items
                             leaf_item_nr = 0
                             for leaf_item in binded_res_item[binded_item_name]:
                                 if res_type_name not in leaf_item.keys():     # name item is not specified in binded item
-                                    resource[key][0][binded_item_name][int(leaf_item_nr)][res_type_name] = item_name        # IS ALWAYS ZERO AFTER KEY ?
+                                    resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] = item_name        # assing name from parent, IS ALWAYS ZERO AFTER KEY ?
                                 else:
-                                    if resource[key][0][binded_item_name][int(leaf_item_nr)][res_type_name] != item_name:
+                                    if resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] != item_name:   # check if configured name is correct, the same as on parent
                                         print("Wrong name specifid in " + key + " " + item_name + ", " + binded_item_name + ": ", resource[key][0][binded_item_name][int(leaf_item_nr)][res_type_name])
                                         exit(1)
                                 leaf_item_nr = leaf_item_nr + 1
+                        binded_item_nr = binded_item_nr + 1
                     cfg_tmp_set[key] = resource[key]    # binding descriptions in special dict variable
                 cfg_big_bind.append(cfg_tmp_set)
             else:
