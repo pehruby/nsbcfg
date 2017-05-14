@@ -135,8 +135,11 @@ def get_lbvs_list_under_csvs(csvs):
         if 'csvserver_cspolicy_binding' in csvsbind:     # does this key exist?
             cont_bind = csvsbind['csvserver_cspolicy_binding']
             for onecspolicybind in cont_bind:           # go through all cspolicy bindings
-                lbvs = onecspolicybind['targetlbvserver']
-                lbvslist.append(lbvs)
+                lbvs = onecspolicybind['targetlbvserver']  ## !!! POZOR, muze se stat, ze targetlbvserver neni definovan, ale s policy je svazana action, kde je specifikovan lbvserver !!!!
+                if lbvs == '':
+                    print("Target LB Vserver not specified in CSP, action must be checked !!")
+                else:
+                    lbvslist.append(lbvs)
 
     return lbvslist
 
