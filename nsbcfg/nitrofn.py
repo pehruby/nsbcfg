@@ -4,6 +4,7 @@ import requests
 import json
 import os
 import sys
+import yaml
 
 requests.packages.urllib3.disable_warnings()
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -48,7 +49,8 @@ resourcetype_name_dict = {'server':'name', \
                             "sslprofile":"name",\
                             "service":"name",\
                             "lbgroup":"name",\
-                            "sslservice":"servicename"}    # name of item which contains name of specific type
+                            "sslservice":"servicename",\
+                            "sslvserver":"vservername"}    # name of item which contains name of specific type
 resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "csvserver", \
                     "lbvserver", "servicegroup", "server", "lbmonitor", "csaction", "cspolicy", "service", "lbgroup", "sslservice"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
@@ -541,7 +543,7 @@ def load_json_cfgs(config_file):
                     cfg_all_set[restype] = resource_json[restype]      # elements description
     return True
 
-def load_json_cfgs2(config_file):
+def load_cfgs2(config_file, file_type='YAML'):
     ''' Loads all configuration files into appropriates data structures
     '''
 
@@ -555,7 +557,11 @@ def load_json_cfgs2(config_file):
     if os.path.isfile(config_file):        #zpracovani souboru nsconfig.json
         try:
             with open(config_file) as data_file:
-                config_json = json.loads(data_file.read())
+                if file_type == 'JSON':
+                    config = json.loads(data_file.read())
+                else:
+                    if file_type == 'YAML':
+                        config = yaml.load(data_file.read())
         except IOError:
             print("Unable to read the file", config_file)
             exit(1)
@@ -563,31 +569,54 @@ def load_json_cfgs2(config_file):
         print("Cannot find the file", config_file)
         exit(1)
 
-    for section in config_json:              # projdi vsechny sekce (items, bindings) z nsconfig.json
-        for files in config_json[section]['filename']:
+    for section in config:              # projdi vsechny sekce (items, bindings) z nsconfig.json
+        for files in config[section]['filename']:
             filename = str(files)
             cfg_tmp_list = []
             cfg_tmp_set = {}
             try:
                 with open(filename) as data_file:
-                    resource_json = json.loads(data_file.read())
-            except ValueError:
+                    if file_type == 'JSON':
+                        resource = json.loads(data_file.read())
+                    elif file_type == 'YAML':
+                        resource = yaml.load(data_file.read())
+                    debug_print("File", filename, "loaded")
+            except (ValueError, yaml.scanner.ScannerError):
                 print("Unable to process the file", filename, ", syntax error?")
                 exit(1)
             except IOError:
                 print("Unable to read the file", filename)
                 exit(1)
             if section == 'bindings':
-                for key in list(resource_json.keys()):
-                    cfg_tmp_set[key] = resource_json[key]    # binding descriptions in special dict variable
+                for key in list(resource.keys()):           # crashes when no keys in resource !!!
+                    # if name of item which we are going to bind to is not specified add it from item which we are going to bind to
+                    binded_res = key.split("_binding")[0]       # binded_res = substring before _binding (i.e servicegroup, ...)
+                    res_type_name = resourcetype_name_dict[binded_res]   # name of the item which contains resource name
+                    binded_item_nr = 0      # item number under specific binding (i.e under lbvserver_binding,...)
+                    for binded_res_item in resource[key]:
+                        item_name = binded_res_item[res_type_name]    # name of specific item to which we are goig to bind, i.e SG_PYTEST1_HTTP, LBVS_PYTEST1_HTTP, ...
+                        for binded_item_name in binded_res_item.keys():
+                            if binded_item_name == res_type_name:
+                                continue            # skip item where item_name is configured, i.e. the item which name will be used in child items
+                            leaf_item_nr = 0
+                            for leaf_item in binded_res_item[binded_item_name]:
+                                if res_type_name not in leaf_item.keys():     # name item is not specified in binded item
+                                    resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] = item_name        # assing name from parent
+                                else:
+                                    if resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] != item_name:   # check if configured name is correct, the same as on parent
+                                        print("Wrong name specifid in " + key + " " + item_name + ", " + binded_item_name + ": ", resource[key][0][binded_item_name][int(leaf_item_nr)][res_type_name])
+                                        exit(1)
+                                leaf_item_nr = leaf_item_nr + 1
+                        binded_item_nr = binded_item_nr + 1
+                    cfg_tmp_set[key] = resource[key]    # binding descriptions in special dict variable
                 cfg_big_bind.append(cfg_tmp_set)
             else:
                 for restype in resourcetype_list:
-                    if restype in resource_json.keys():
-                        a = {restype:resource_json[restype]}
+                    if restype in resource.keys():
+                        a = {restype:resource[restype]}
                         cfg_tmp_list.append(dict(a))
                         #                  cfg_all_list.append(dict(key, resource_json[key]))   # vsechny nactene konfigurace pridej do jedne promenne
-                        cfg_tmp_set[restype] = resource_json[restype]      # elements description
+                        cfg_tmp_set[restype] = resource[restype]      # elements description
                 cfg_big_all_list.append(cfg_tmp_list)
                 cfg_big_all_set.append(cfg_tmp_set)
 

@@ -12,7 +12,8 @@ def main():
     '''
 
     paction = ''               # create, update, delete
-    config_file = 'nsconfig.json'
+    config_file = ''
+    conf_file_type = ''
 
     argv = sys.argv[1:]
     username = ''
@@ -28,11 +29,12 @@ def main():
     -a,     --action                    create, c, update, u, delete, d
     -u,     --username                  username
     -p,     --password                  password, optional
-    -c,     --cfgfile                   default nsconfig.json
+    -c,     --cfgfile                   default nsconfig[.yml|.json]
+    -t,     --filetype                  type of the config file (yaml - default, json),
     '''
 
     try:
-        opts, args = getopt.getopt(argv, "dhpu:i:c:a:", ["debug", "help", "password=", "username=", "ipaddr=", "cfgfile=", "action="])
+        opts, args = getopt.getopt(argv, "dhpu:i:a:c:t:", ["debug", "help", "password=", "username=", "ipaddr=", "action=", "cfgfile=", "filetype="])
     except getopt.GetoptError:
         print(usage_str)
         sys.exit(2)
@@ -52,12 +54,28 @@ def main():
             config_file = arg
         elif opt in ("-a", "--action"):
             paction = arg
+        elif opt in ("-t", "--filetype"):
+            conf_file_type = arg
 
 
     if paction not in ['create', 'update', 'delete', 'c', 'u', 'd']:
         print("Wrong action argument", paction)
         print(usage_str)
         sys.exit(2)
+
+    if not conf_file_type:
+        conf_file_type = 'YAML'
+
+    conf_file_type.upper()
+    if conf_file_type not in ('JSON', 'YAML'):
+        print("Wrong filetype specified ", conf_file_type)
+        print(usage_str)
+        sys.exit(2)
+    if not config_file:
+        if conf_file_type == 'YAML':
+            config_file = 'nsconfig.yml'
+        elif conf_file_type == 'JSON':
+            config_file = 'nsconfig.json'
 
     if username == '':
         print("No username entered")
@@ -82,7 +100,7 @@ def main():
         sys.exit(2)
 
 
-    nitrofn.load_json_cfgs2(config_file)
+    nitrofn.load_cfgs2(config_file, conf_file_type)
 
     if paction in ['create', 'c']:
         if nitrofn.check_if_items_exist():
