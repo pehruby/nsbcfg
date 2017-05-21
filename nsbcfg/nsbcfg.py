@@ -29,8 +29,8 @@ def main():
     -a,     --action                    create, c, update, u, delete, d
     -u,     --username                  username
     -p,     --password                  password, optional
-    -c,     --cfgfile                   default nsconfig.json
-    -t,     --filetype                  type of the config file (yaml, json)
+    -c,     --cfgfile                   default nsconfig[.yml|.json]
+    -t,     --filetype                  type of the config file (yaml - default, json),
     '''
 
     try:

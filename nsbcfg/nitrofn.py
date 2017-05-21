@@ -577,14 +577,15 @@ def load_cfgs2(config_file, file_type='YAML'):
                         resource = json.loads(data_file.read())
                     elif file_type == 'YAML':
                         resource = yaml.load(data_file.read())
-            except ValueError:
+                    debug_print("File", filename, "loaded")
+            except (ValueError, yaml.scanner.ScannerError):
                 print("Unable to process the file", filename, ", syntax error?")
                 exit(1)
             except IOError:
                 print("Unable to read the file", filename)
                 exit(1)
             if section == 'bindings':
-                for key in list(resource.keys()):
+                for key in list(resource.keys()):           # crashes when no keys in resource !!!
                     # if name of item which we are going to bind to is not specified add it from item which we are going to bind to
                     binded_res = key.split("_binding")[0]       # binded_res = substring before _binding (i.e servicegroup, ...)
                     res_type_name = resourcetype_name_dict[binded_res]   # name of the item which contains resource name
@@ -597,7 +598,7 @@ def load_cfgs2(config_file, file_type='YAML'):
                             leaf_item_nr = 0
                             for leaf_item in binded_res_item[binded_item_name]:
                                 if res_type_name not in leaf_item.keys():     # name item is not specified in binded item
-                                    resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] = item_name        # assing name from parent, IS ALWAYS ZERO AFTER KEY ?
+                                    resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] = item_name        # assing name from parent
                                 else:
                                     if resource[key][binded_item_nr][binded_item_name][leaf_item_nr][res_type_name] != item_name:   # check if configured name is correct, the same as on parent
                                         print("Wrong name specifid in " + key + " " + item_name + ", " + binded_item_name + ": ", resource[key][0][binded_item_name][int(leaf_item_nr)][res_type_name])
