@@ -62,7 +62,8 @@ svc_parametr_name_dict = {"service_lbmonitor_binding":"monitor_name"}
 vs_parametr_name_dict = {"lbvserver_servicegroup_binding":"servicegroupname", \
                         "lbvserver_responderpolicy_binding":"policyname"}
 cs_parametr_name_dict = {"csvserver_lbvserver_binding":"lbvserver", "csvserver_cspolicy_binding":"policyname", \
-                         "csvserver_rewritepolicy_binding":"policyname"}           # name of binded item in CSVS
+                         "csvserver_rewritepolicy_binding":"policyname",
+                         "csvserver_responderpolicy_binding":"policyname"}           # name of binded item in CSVS
 sslvs_parametr_name_dict = {"sslvserver_ecccurve_binding":"ecccurvename", "sslvserver_sslcertkey_binding":"certkeyname"}
 general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "servicegroup_servicegroupmember_binding":"servername",\
@@ -71,6 +72,7 @@ general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "csvserver_lbvserver_binding":"lbvserver",\
                                 "csvserver_cspolicy_binding":"policyname",\
                                 "csvserver_rewritepolicy_binding":"policyname",\
+                                "csvserver_responderpolicy_binding":"policyname",\
                                 "sslvserver_ecccurve_binding":"ecccurvename",\
                                 "sslvserver_sslcertkey_binding":"certkeyname",\
                                 "lbgroup_lbvserver_binding":"vservername"}
@@ -882,6 +884,21 @@ def bind_one_csvs(onecsvs):
                 exit(1)
             if response.status_code != 200:
                 print("Chyba pri bindingu rewrite policy na CSVS", "http status kod:", response.status_code)
+                print("Response text", response.text)
+                return False
+            else:
+                print("Successfuly binded", item['policyname'], "to", item['name'])
+    if 'csvserver_responderpolicy_binding' in onecsvs:
+        for item in onecsvs['csvserver_responderpolicy_binding']:     # bind rewrite policies to CSVS
+            body = {'csvserver_responderpolicy_binding' : item}
+            try:
+                debug_print("Binding", item['policyname'], "to", item['name'])
+                response = requests.put(nitro_config_url + 'csvserver_responderpolicy_binding', headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
+            except (requests.ConnectionError, requests.ConnectTimeout):
+                print("Connection error")
+                exit(1)
+            if response.status_code != 200:
+                print("Chyba pri bindingu responder policy na CSVS", "http status kod:", response.status_code)
                 print("Response text", response.text)
                 return False
             else:
