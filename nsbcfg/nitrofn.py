@@ -1158,9 +1158,10 @@ def bind_general(name):
         subtree_name = name + '_binding'
         if subtree_name in cfg_bind:
             for subtree in cfg_bind[subtree_name]:      # go through each item of specified subtree, i.e through all lbgroup
-                actname = subtree.get(resourcetype_name_dict[name])           # probably subtree.get(resourcetype_name_dict[name]) !!!
+                res_type_name = resourcetype_name_dict[name]
+                actname = subtree.get(res_type_name)           # probably subtree.get(resourcetype_name_dict[name]) !!!
                 for (key, value) in subtree.items():           # key is name of "binding function" with exception of "name"
-                    if key == "name":
+                    if key == res_type_name:
                         continue            # process next key
                     for cfgbody in value:            # go through each json body which will be binded
                         body = {key : cfgbody}         # create proper format of json body
@@ -1169,6 +1170,9 @@ def bind_general(name):
                             response = requests.put(nitro_config_url + key, headers=json_header, data=json.dumps(body), verify=False, cookies=cookie)
                         except (requests.ConnectionError, requests.ConnectTimeout):
                             print("Connection error")
+                            exit(1)
+                        except KeyError as e:
+                            print("Keyerror", e)
                             exit(1)
                         if response.status_code != 200:
                             print("Chyba pri bindingu serveru", "http status kod:", response.status_code)
@@ -1185,11 +1189,12 @@ def unbind_general(unb_name):
     for cfg_set in cfg_big_all_set:
         if unb_name in cfg_set:
             for item in cfg_set[unb_name]:
-                if resource_exist(unb_name, item["name"]):       # resource type, name
-                    debug_print(unb_name, "unbind:", item['name'])
-                    response = requests.get(nitro_config_url + subtree_name + '/' + item['name'], headers=json_header, verify=False, cookies=cookie)
+                res_type_name = resourcetype_name_dict[unb_name]
+                if resource_exist(unb_name, item[res_type_name]):       # resource type, name
+                    debug_print(unb_name, "unbind:", item[res_type_name])
+                    response = requests.get(nitro_config_url + subtree_name + '/' + item[res_type_name], headers=json_header, verify=False, cookies=cookie)
                     if response.status_code != 200:
-                        print("Chyba pri GET service_bindings", item['name'])
+                        print("Error during GET service_bindings", item[res_type_name])
                         return False
                     body_json = json.loads(response.text)
                     gen_bindings = body_json[subtree_name]
@@ -1198,15 +1203,17 @@ def unbind_general(unb_name):
                             for subitem in gen_bindings[0][key]:     # projed vsechny cleny dane polozky (monitory, membery)
                                 subitem_name = subitem[general_parametr_name_dict[key]]    # jmeno konkretni polozky (monitor, server)
                                 add_param = ''
+                                if key == 'servicegroup_servicegroupmember_binding':   # server member?
+                                    add_param = ',port:' + str(subitem['port'])         # add parameter 'port' do URL
                                 debug_print("Unbinding", key, subitem_name)
-                                response = requests.delete(nitro_config_url + key + '/' + item['name'] + '?args=' + general_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
+                                response = requests.delete(nitro_config_url + key + '/' + item[res_type_name] + '?args=' + general_parametr_name_dict[key] + ':' + subitem_name + add_param, headers=json_header, verify=False, cookies=cookie)
                                 if response.status_code != 200:
-                                    print("Chyba pri unbind", key, subitem_name, "http status kod:", response.status_code)
+                                    print("Error during unbinding", key, subitem_name, "http status kod:", response.status_code)
                                     print("Response text", response.text)
                                     return False
                                 else:
-                                    print("unbind:", general_parametr_name_dict[key], subitem_name, "successfuly unbinded from", item['name'])
-                    debug_print("Konec", unb_name, "unbind:", item['name'])
+                                    print("unbind:", general_parametr_name_dict[key], subitem_name, "successfuly unbinded from", item[res_type_name])
+                    debug_print("End", unb_name, "unbind:", item[res_type_name])
 
 def is_ip_valid(testedip):
     ''' Test if string is valid IP address
