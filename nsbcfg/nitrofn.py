@@ -1158,7 +1158,7 @@ def bind_general(name):
         subtree_name = name + '_binding'
         if subtree_name in cfg_bind:
             for subtree in cfg_bind[subtree_name]:      # go through each item of specified subtree, i.e through all lbgroup
-                actname = subtree.get("name")           # probably subtree.get(resourcetype_name_dict[name]) !!!
+                actname = subtree.get(resourcetype_name_dict[name])           # probably subtree.get(resourcetype_name_dict[name]) !!!
                 for (key, value) in subtree.items():           # key is name of "binding function" with exception of "name"
                     if key == "name":
                         continue            # process next key
