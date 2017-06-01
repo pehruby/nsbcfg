@@ -134,7 +134,7 @@ def main():
         #nitrofn.bind_all_csvs()
         nitrofn.bind_general("csvserver")
         #nitrofn.bind_all_sslvs()
-        nitrofn.bind_general("csvserver")
+        nitrofn.bind_general("sslvserver")
         nitrofn.process_one_item_from_cfgs('lbgroup', 'update')
         nitrofn.process_one_item_from_cfgs('sslservice', 'update')  # sslservice doesn't have Create, just Update method. Updates lbsvc item of type SSL.
 

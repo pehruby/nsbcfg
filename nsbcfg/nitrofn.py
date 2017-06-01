@@ -69,12 +69,15 @@ general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "servicegroup_servicegroupmember_binding":"servername",\
                                 "service_lbmonitor_binding":"monitor_name",\
                                 "lbvserver_servicegroup_binding":"servicegroupname",\
+                                "lbvserver_service_binding":"servicename",\
+                                "lbvserver_responderpolicy_binding":"policyname",\
                                 "csvserver_lbvserver_binding":"lbvserver",\
                                 "csvserver_cspolicy_binding":"policyname",\
                                 "csvserver_rewritepolicy_binding":"policyname",\
                                 "csvserver_responderpolicy_binding":"policyname",\
                                 "sslvserver_ecccurve_binding":"ecccurvename",\
                                 "sslvserver_sslcertkey_binding":"certkeyname",\
+                                "sslvserver_sslcipher_binding":"ciphername",\
                                 "lbgroup_lbvserver_binding":"vservername"}
 stat_name_list = ["service", "servicegroup", "lbvserver", "csvserver"]      # name of items which are we going to get statistics for
 
