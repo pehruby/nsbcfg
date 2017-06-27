@@ -28,7 +28,7 @@ def main():
     -i,     --ipaddr                    IP address of Netscaler
     -u,     --username                  username
     -p,     --password                  password, optional
-    -c,     --cfgfile                   default nsconfig.json
+    -c,     --cfgfile                   default nsconfig.yml
     -v,     --vip                       ip[:port] of the VIP
     '''
 
@@ -72,8 +72,7 @@ def main():
     #print("IP addr=", ns_ip)
     #print("CFG file=", config_file)
     if config_file == '' and vip_ip_port == '':
-        print("Config file or VIP must be specified")
-        sys.exit(2)
+        config_file = 'nsconfig.yml'    #try to use default config file
     if config_file and vip_ip_port:
         print("Config file and VIP cannot be specified both")
         sys.exit(2)
