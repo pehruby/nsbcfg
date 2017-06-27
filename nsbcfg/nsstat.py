@@ -68,9 +68,6 @@ def main():
         sys.exit(2)
 
 
-    #print("Username=", username)
-    #print("IP addr=", ns_ip)
-    #print("CFG file=", config_file)
     if config_file == '' and vip_ip_port == '':
         config_file = 'nsconfig.yml'    #try to use default config file
     if config_file and vip_ip_port:
@@ -90,21 +87,6 @@ def main():
         nitrofn.load_cfgs2(config_file)
         nitrofn.get_and_print_stat_all_cfgfile_simple()
 
-#    nitrofn.get_stat_one_resource('service', 'SVC_PH-TEST-S01_HTTP')
-#    nitrofn.get_stat_all_cfgfile_resource()
-#    nitrofn.print_stat_all_simple()
-
-#    nitrofn.get_nitro_resources('csvserver', 'filter=ipv46:10.25.50.21')
-
-#    csvslist = nitrofn.get_vs_list_by_ip_address_port('csvserver', '10.25.50.11')
-#    lbvslist = nitrofn.get_vs_list_by_ip_address_port('lbvserver', '10.25.50.14')
-#    lbvslist = nitrofn.get_lbvs_list_under_csvs('CSVS_PROD_PRTG-NET_SSL')
-#    svclist = nitrofn.get_svc_list_under_lbvs('LBVS_PROD_PRTGDC1-NET_SSL')
-#    sglist = nitrofn.get_sg_list_under_lbvs('LBVS_TEST_HUGO-ST-CPAS_SSL')
-
- #   tmpdict = nitrofn.load_resource_name_tree_under_ip_port('10.25.50.11')
- #   stat = nitrofn.get_stat_all_dict(tmpdict)
- #   nitrofn.print_stat_all_simple(stat)
 
     if vip_ip_port:
         if nitrofn.is_ip_port_valid(vip_ip_port):
