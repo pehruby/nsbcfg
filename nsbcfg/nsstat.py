@@ -88,7 +88,7 @@ def main():
         sys.exit(2)
 
     if config_file:
-        nitrofn.load_json_cfgs2(config_file)
+        nitrofn.load_cfgs2(config_file)
         nitrofn.get_and_print_stat_all_cfgfile_simple()
 
 #    nitrofn.get_stat_one_resource('service', 'SVC_PH-TEST-S01_HTTP')
