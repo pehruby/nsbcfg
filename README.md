@@ -30,6 +30,7 @@ Netscaler batch configuration based on YAML (or JSON) configuration files
     * Bindings
       * lbgroup -> lbvserver
       * lbvserver -> responderpolicy
+      * lbvserver -> rewritepolicy
       * lbvserver -> service
       * lbvserver -> servicegroup
   * Responder

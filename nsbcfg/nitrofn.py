@@ -71,6 +71,7 @@ general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "lbvserver_servicegroup_binding":"servicegroupname",\
                                 "lbvserver_service_binding":"servicename",\
                                 "lbvserver_responderpolicy_binding":"policyname",\
+                                "lbvserver_rewritepolicy_binding":"policyname",\
                                 "csvserver_lbvserver_binding":"lbvserver",\
                                 "csvserver_cspolicy_binding":"policyname",\
                                 "csvserver_rewritepolicy_binding":"policyname",\
