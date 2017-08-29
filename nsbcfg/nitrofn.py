@@ -1,9 +1,9 @@
 # pylint: disable=C0301, C0103
 
-import requests
 import json
 import os
 import sys
+import requests
 import yaml
 
 requests.packages.urllib3.disable_warnings()
@@ -433,6 +433,26 @@ def trim_string(string, length, where='left'):
             string = string[:tmplen] + '>'
     return string
 
+def is_server_binded(servername):
+    '''
+    Checks if server "servername" is binded to service, service group or gslb service.
+    '''
+
+    try:
+        response = requests.get(nitro_config_url + 'server_binding' + '/' + servername, headers=json_header, verify=False, cookies=cookie)
+    except (requests.ConnectionError, requests.ConnectTimeout):
+        print("Unable to connect to the server")
+        exit(1)
+    if response.status_code != 200:     # server doesn't exist - code 40X would be better ?
+        return False
+    r_json = response.json()
+    if 'server_service_binding' in r_json['server_binding'][0]:    # is server_service_binding key presented in response?
+        return True
+    if 'server_servicegroup_binding' in r_json['server_binding'][0]:    # is server_servicegroup_binding key presented in response?
+        return True
+    if 'server_gslbservice_binding' in r_json['server_binding'][0]:    # is server_gslbservice_binding key presented in response?
+        return True
+    return False
 
 
 def init_nitrofn(ns_ip, deb):
@@ -640,7 +660,7 @@ def create_update(body, action='create'):                  # it creates/updates 
         # name=str(body[typ][0]['name'])          #  resource name
         name = str(item[res_type_name])          #  resource name
         action_body = {}
-        action_body[typ] = item                   #body with one item
+        action_body[typ] = item.copy()                   #body with one item, create copy of directory so that origin structure is preserved (not afected by delete_item_from_body or modify_body_for_update )
         debug_print("Processing", typ, name)
         exists = False
         if resource_exist(typ, name):
@@ -648,28 +668,47 @@ def create_update(body, action='create'):                  # it creates/updates 
             exists = True
         else:
             debug_print(typ, name, "doesn't exist")
-       # try:
-        if action == 'create' and not exists:
-            #print("Creating", typ, name)
-            create_update_delete_resource(typ, name, action_body, 'create')
-            # response = requests.post(nitro_config_url + '/' + typ + '/' + name, headers=json_header, data=json.dumps(action_body), verify=False, cookies=cookie)
-        elif (action == 'create' or action == 'update') and exists:
-            #print("Updating", typ, name)
-            modify_body_for_update(action_body)        # delete items not allowed in update message
-            create_update_delete_resource(typ, name, action_body, 'update')
-            # response = requests.put(nitro_config_url + '/' + typ + '/'+name, headers=json_header, data=json.dumps(action_body), verify=False, cookies=cookie)
-        elif action == 'delete' and exists:
-            # print("Deleting", typ, name)
-            create_update_delete_resource(typ, name, action_body)
-    #    except:
-    #        print("Connection error")
-    #        exit(1)
-    #    if (response.status_code != 200) and (response.status_code != 201):
-    #        print("Chyba pri create/update", typ, name, "http status kod:", response.status_code)
-    #        print("Response text", response.text)
-    #        return False
-    #    else:
-    #        print(typ, name, "successfuly created/updated")
+
+        shared = False
+        if typ == 'server':         # is processed item an server ? 
+            if 'shared' in item:    
+                if item['shared'] == 'YES': # is it shared server? server defined and used in several separate configurations
+                    shared = True
+
+        if typ == 'server' and shared:      # process shared server
+            if action == 'create':
+                if exists:
+                    print("Shared server", name, "already exists. Was not created now")
+                else:
+                    delete_item_from_body(action_body,'shared')     # delete 'shared' item from body
+                    create_update_delete_resource(typ, name, action_body, 'create')
+            if action == 'update' and exists:
+                if not is_server_binded(name):      # if server is not binded to any resource (servicegroup, service)
+                    delete_item_from_body(action_body,'shared')
+                    modify_body_for_update(action_body)        # delete items not allowed in update message
+                    create_update_delete_resource(typ, name, action_body, 'update')    # update it
+                else:
+                    print("Shared server", name, "is binded to some resources and was not updated")
+            if action == 'delete' and exists:
+                if not is_server_binded(name):      # if server is not binded to any resource (servicegroup, service)
+                    delete_item_from_body(action_body,'shared')
+                    create_update_delete_resource(typ, name, action_body, 'delete')    # delele it
+                else:
+                    print("Shared server", name, "is binded to some resources and was not deleted")
+        else:           # process other resources than shared server
+            if action == 'create' and not exists:
+                #print("Creating", typ, name)
+                create_update_delete_resource(typ, name, action_body, 'create')
+                # response = requests.post(nitro_config_url + '/' + typ + '/' + name, headers=json_header, data=json.dumps(action_body), verify=False, cookies=cookie)
+            elif (action == 'create' or action == 'update') and exists:
+                #print("Updating", typ, name)
+                modify_body_for_update(action_body)        # delete items not allowed in update message
+                create_update_delete_resource(typ, name, action_body, 'update')
+                # response = requests.put(nitro_config_url + '/' + typ + '/'+name, headers=json_header, data=json.dumps(action_body), verify=False, cookies=cookie)
+            elif action == 'delete' and exists:
+                # print("Deleting", typ, name)
+                create_update_delete_resource(typ, name, action_body)
+
     return True
 
 
@@ -706,6 +745,11 @@ def check_if_items_exist():
             for subitem in item[typ]:             # go through every item of specific type
                 # name=str(body[typ][0]['name'])          #  resource name
                 name = str(subitem[res_type_name])          #  resource name
+                if typ == 'server':
+                    if 'shared' in subitem:
+                        if subitem['shared'] == 'YES':      # subitem is 'shared'
+                            debug_print("Resource type:", typ, "name:", name, "exists", "but is shared") 
+                            continue        # process next subitem
                 action_body = {}
                 action_body[typ] = item                   #body with one item
                 if resource_exist(typ, name):
@@ -722,6 +766,16 @@ def modify_body_for_update(telo):                      # delete items in body no
         for polozka in update_body_del_dict[restyp]:   # projed vsechny polozky, ktere je treba odstranit
             if polozka in telo[restyp]:                # je tato polozka v tele ?
                 del telo[restyp][polozka]                       # odstran ji
+
+def delete_item_from_body(telo, item):
+    ''' Deletes  item from body
+        It is used for example to get rid of 'shared' item
+    '''
+
+    restyp = list(telo.keys())[0]
+    if item in telo[restyp]:        # je polozka  v tele?
+        del telo[restyp][item]                       # odstran ji     
+
 
 def bind_all_sslvs():
     ''' Binds all SSL parametrers to CSVSs
