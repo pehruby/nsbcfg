@@ -1,7 +1,7 @@
 # nsbcfg
 Netscaler batch configuration based on YAML (or JSON) configuration files
 
-### Supportd configuration resources and bindings:
+### Supported configuration resources and bindings:
 
   * Basic
     * Resources
@@ -69,7 +69,10 @@ Names follows the ones used in [Netscaler NITRO API](http://docs.citrix.com/en-u
     -t,     --filetype                  type of the config file (yaml - default, json),
 
 
+### Usage rules
 
+* All resource names must be unique, i.e resource name specified in one configuration must not be used in other configuration. Exception is server resource which contains property _shared_ set to _True_ or _'YES'_. Such resource name can be present in several configuration files
+* All resource property names follows the naming scheme described in Netscaler NITRO API. The only exception is server property _shared_ which is not defined in NITRO and is solely used in this tool for purposes specified above
 
 
 
