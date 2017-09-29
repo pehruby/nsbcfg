@@ -53,7 +53,7 @@ Netscaler batch configuration based on YAML (or JSON) configuration files
 
 Support for other resources and bindings can be easily added.
 
-Names follows the ones used in [Netscaler NITRO API](http://docs.citrix.com/en-us/netscaler/11/nitro-api.html)
+Resource and property names follows the ones used in [Netscaler NITRO API](http://docs.citrix.com/en-us/netscaler/11/nitro-api.html)
 
 
 ### Command line parameters
