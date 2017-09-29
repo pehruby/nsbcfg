@@ -108,7 +108,7 @@ def main():
             sys.exit(2)
 
 
-    if paction in ['create', 'update', 'c', 'u']:
+    if paction in ['create', 'update', 'c', 'u']: # maybe it would be better to create separate actions for Create and Update
 
 
         nitrofn.unbind_general("sslvserver")

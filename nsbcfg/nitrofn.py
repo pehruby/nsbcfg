@@ -672,7 +672,7 @@ def create_update(body, action='create'):                  # it creates/updates 
         shared = False
         if typ == 'server':         # is processed item an server ? 
             if 'shared' in item:    
-                if item['shared'] == 'YES': # is it shared server? server defined and used in several separate configurations
+                if item['shared'] == 'YES' or item['shared'] == True : # is it shared server? server defined and used in several separate configurations
                     shared = True
 
         if typ == 'server' and shared:      # process shared server
@@ -747,9 +747,10 @@ def check_if_items_exist():
                 name = str(subitem[res_type_name])          #  resource name
                 if typ == 'server':
                     if 'shared' in subitem:
-                        if subitem['shared'] == 'YES':      # subitem is 'shared'
-                            debug_print("Resource type:", typ, "name:", name, "exists", "but is shared") 
-                            continue        # process next subitem
+                        if subitem['shared'] == 'YES' or subitem['shared'] == True:      # subitem is 'shared'
+                            if resource_exist(typ, name):
+                                debug_print("Resource type:", typ, "name:", name, "exists", "but is shared") 
+                                continue        # process next subitem
                 action_body = {}
                 action_body[typ] = item                   #body with one item
                 if resource_exist(typ, name):
