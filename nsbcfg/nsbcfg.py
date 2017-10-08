@@ -114,7 +114,7 @@ def main():
             sys.exit(2)
 
 
-    if paction in ['create', 'update', 'c', 'u']: # maybe it would be better to create separate actions for Create and Update
+    if paction in ['update', 'u']: 
 
 
         nitrofn.unbind_general("sslvserver")
@@ -123,8 +123,12 @@ def main():
         nitrofn.unbind_general("service")
         nitrofn.unbind_general("servicegroup")
         nitrofn.unbind_general("lbgroup")
+        nitrofn.process_json_cfgs()                 # update items
 
-        nitrofn.process_json_cfgs()
+    if paction in ['create', 'c']:
+        nitrofn.process_json_cfgs('create')                 # create items
+
+    if paction in ['create', 'update', 'c', 'u']: 
 
         nitrofn.bind_general("lbgroup")
         nitrofn.bind_general("servicegroup")
@@ -135,7 +139,7 @@ def main():
         nitrofn.process_one_item_from_cfgs('lbgroup', 'update')
         nitrofn.process_one_item_from_cfgs('sslservice', 'update')  # sslservice doesn't have Create, just Update method. Updates lbsvc item of type SSL.
 
-    elif paction in ['delete', 'd']:
+    if paction in ['delete', 'd']:
 
         nitrofn.unbind_general("sslvserver")
         nitrofn.unbind_general("csvserver")

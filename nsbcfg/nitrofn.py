@@ -718,9 +718,10 @@ def process_json_cfgs(action='update'):
     ''' Process (create/update/delete) configuration of all items (servers,monitors,..).
     '''
     for cfg_list in cfg_big_all_list:               # process config from all config files
-        for item in reversed(cfg_list):
-            if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
-                create_update(item, 'delete')
+        if action == 'update' or action == 'delete':        # delete all items. in fact 'update' = 'delete' + 'crete'
+            for item in reversed(cfg_list):
+                if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
+                    create_update(item, 'delete')
         if action == 'update' or action == 'create':
             for item in cfg_list:
                 if list(item.keys())[0] not in dont_process_at_beg_list:        # don't process certain specific items
