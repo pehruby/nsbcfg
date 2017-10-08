@@ -3,6 +3,7 @@
 import sys
 import getpass
 import getopt
+import os
 
 import nitrofn
 
@@ -18,6 +19,7 @@ def main():
     argv = sys.argv[1:]
     username = ''
     pswd = ''
+    ns_ip = ''
     debug = False
 
     #usage_str = 'Usage: nscfg.py -i <IP address> -a <action> -u <username> [ -d -p <password> -c <cfgfile>]'
@@ -76,6 +78,10 @@ def main():
             config_file = 'nsconfig.yml'
         elif conf_file_type == 'JSON':
             config_file = 'nsconfig.json'
+    
+    curdir = os.getcwd()
+    tmpfilename = os.path.join(curdir, config_file)
+    config_file = os.path.abspath(os.path.realpath(tmpfilename))        # absolute path to configfile
 
     if username == '':
         print("No username entered")

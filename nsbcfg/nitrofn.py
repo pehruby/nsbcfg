@@ -595,11 +595,13 @@ def load_cfgs2(config_file, file_type='YAML'):
         print("Cannot find the file", config_file)
         exit(1)
 
+    configfiledir = os.path.dirname(config_file)        # directory where are config files located
     for section in config:              # projdi vsechny sekce (items, bindings) z nsconfig.json
         for files in config[section]['filename']:
             filename = str(files)
             cfg_tmp_list = []
             cfg_tmp_set = {}
+            filename = configfiledir + '\\' + filename      # absolute path to filename
             try:
                 with open(filename) as data_file:
                     if file_type == 'JSON':
