@@ -601,7 +601,7 @@ def load_cfgs2(config_file, file_type='YAML'):
             filename = str(files)
             cfg_tmp_list = []
             cfg_tmp_set = {}
-            filename = configfiledir + '\\' + filename      # absolute path to filename
+            filename = os.path.join(configfiledir, filename)      # absolute path to filename
             try:
                 with open(filename) as data_file:
                     if file_type == 'JSON':
