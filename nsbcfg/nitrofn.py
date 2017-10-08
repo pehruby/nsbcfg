@@ -1274,7 +1274,7 @@ def unbind_general(unb_name):
                                     print("Response text", response.text)
                                     return False
                                 else:
-                                    print("unbind:", general_parametr_name_dict[key], subitem_name, "successfuly unbinded from", item[res_type_name])
+                                    print("Successfuly unbinded", general_parametr_name_dict[key], subitem_name, "from", item[res_type_name])
                     debug_print("End", unb_name, "unbind:", item[res_type_name])
 
 def is_ip_valid(testedip):
