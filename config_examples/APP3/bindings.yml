@@ -1,39 +1,39 @@
 ---
 servicegroup_binding:
-- servicegroupname: SG_TEST_APP2_HTTP
+- servicegroupname: SG_TEST_APP3_HTTP
   servicegroup_servicegroupmember_binding:
   - port: 80
     weight: '2'
-    servername: SVR_APP2-W1-CZP
+    servername: SVR_APP3-W1-CZP
     state: ENABLED
   - port: 80
     weight: '1'
-    servername: SVR_APP2-W2-CZP
+    servername: SVR_APP3-W2-CZP
     state: ENABLED
   - port: 80
     weight: '1'
-    servername: SVR_APP2-W3-CZP
+    servername: SVR_APP3-W3-CZP
     state: ENABLED
   - port: 80
     weight: '1'
-    servername: SVR_APP2-W4-CZP
+    servername: SVR_APP3-W4-CZP
     state: ENABLED
   servicegroup_lbmonitor_binding:
   - weight: '1'
-    monitor_name: MON_TEST_APP2
+    monitor_name: MON_TEST_APP3
     hashid: '0'
 
 lbvserver_binding:
-- name: LBVS_TEST_APP2_HTTP
+- name: LBVS_TEST_APP3_HTTP
   lbvserver_servicegroup_binding:
-  - servicegroupname: SG_TEST_APP2_HTTP
+  - servicegroupname: SG_TEST_APP3_HTTP
 
 csvserver_binding:
-- name: CSVS_TEST_APP2_HTTP
+- name: CSVS_TEST_APP3_HTTP
   csvserver_lbvserver_binding:
-  - lbvserver: LBVS_TEST_APP2_HTTP
+  - lbvserver: LBVS_TEST_APP3_HTTP
   csvserver_rewritepolicy_binding:
-  - policyname: RWP_TEST_APP2_INS-X-FORW-FOR-IP
+  - policyname: RWP_TEST_APP3_INS-X-FORW-FOR-IP
     priority: '100'
     bindpoint: REQUEST
     gotopriorityexpression: END

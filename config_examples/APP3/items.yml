@@ -1,7 +1,7 @@
 ---
 
 lbmonitor:
-- monitorname: MON_TEST_APP2
+- monitorname: MON_TEST_APP3
   type: HTTP
   interval: 10
   units3: SEC
@@ -19,28 +19,28 @@ lbmonitor:
   respcode:
   - '200'
   httprequest: HEAD /stat/test/webserver_test.html
-  customheaders: "Host:app2.domainname.cz\r\n"
+  customheaders: "Host:app3.domainname.cz\r\n"
 
 server:
-- name: SVR_APP2-W1-CZP
+- name: SVR_APP3-W1-CZP
   ipaddress: 192.168.16.204
-  comment: APP2
-- name: SVR_APP2-W2-CZP
+  comment: APP3
+- name: SVR_APP3-W2-CZP
   ipaddress: 192.168.16.214
-  comment: APP2
-- name: SVR_APP2-W3-CZP
+  comment: APP3
+- name: SVR_APP3-W3-CZP
   ipaddress: 192.168.16.224
-  comment: APP2
-- name: SVR_APP2-W4-CZP
+  comment: APP3
+- name: SVR_APP3-W4-CZP
   ipaddress: 192.168.16.234
-  comment: APP2
+  comment: APP3
 
 servicegroup:
-- servicegroupname: SG_TEST_APP2_HTTP
+- servicegroupname: SG_TEST_APP3_HTTP
   servicetype: HTTP
 
 lbvserver:
-- name: LBVS_TEST_APP2_HTTP
+- name: LBVS_TEST_APP3_HTTP
   servicetype: HTTP
   backupvserver: LBVS_FAILOVER_HTTP
   persistencetype: SOURCEIP
@@ -48,18 +48,18 @@ lbvserver:
   persistmask: 255.255.255.255
 
 csvserver:
-- name: CSVS_TEST_APP2_HTTP
+- name: CSVS_TEST_APP3_HTTP
   ipv46: 10.1.2.25
   port: 80
   servicetype: HTTP
 
 rewriteaction:
-- name: RWA_TEST_APP2_INS-X-FORW-FOR-IP
+- name: RWA_TEST_APP3_INS-X-FORW-FOR-IP
   type: insert_http_header
   target: x-forwarded-for
   stringbuilderexpr: CLIENT.IP.SRC
 
 rewritepolicy:
-- name: RWP_TEST_APP2_INS-X-FORW-FOR-IP
+- name: RWP_TEST_APP3_INS-X-FORW-FOR-IP
   rule: HTTP.REQ.HEADER("x-forwarded-for").EXISTS.NOT
-  action: RWA_TEST_APP2_INS-X-FORW-FOR-IP
+  action: RWA_TEST_APP3_INS-X-FORW-FOR-IP

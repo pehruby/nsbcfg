@@ -81,24 +81,24 @@ Resource and property names follow the ones used in [Netscaler NITRO API](http:/
 ```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a c
 Password:
-Successfuly created rewriteaction RWA_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly created rewritepolicy RWP_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly created csvserver CSVS_TEST_APP2_HTTP
-Successfuly created lbvserver LBVS_TEST_APP2_HTTP
-Successfuly created servicegroup SG_TEST_APP2_HTTP
-Successfuly created server SVR_APP2-W1-CZP
-Successfuly created server SVR_APP2-W2-CZP
-Successfuly created server SVR_APP2-W3-CZP
-Successfuly created server SVR_APP2-W4-CZP
-Successfuly created lbmonitor MON_TEST_APP2
-Successfuly binded SVR_APP2-W1-CZP to SG_TEST_APP2_HTTP
-Successfuly binded SVR_APP2-W2-CZP to SG_TEST_APP2_HTTP
-Successfuly binded SVR_APP2-W3-CZP to SG_TEST_APP2_HTTP
-Successfuly binded SVR_APP2-W4-CZP to SG_TEST_APP2_HTTP
-Successfuly binded MON_TEST_APP2 to SG_TEST_APP2_HTTP
-Successfuly binded SG_TEST_APP2_HTTP to LBVS_TEST_APP2_HTTP
-Successfuly binded LBVS_TEST_APP2_HTTP to CSVS_TEST_APP2_HTTP
-Successfuly binded RWP_TEST_APP2_INS-X-FORW-FOR-IP to CSVS_TEST_APP2_HTTP
+Successfuly created rewriteaction RWA_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly created rewritepolicy RWP_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly created csvserver CSVS_TEST_APP3_HTTP
+Successfuly created lbvserver LBVS_TEST_APP3_HTTP
+Successfuly created servicegroup SG_TEST_APP3_HTTP
+Successfuly created server SVR_APP3-W1-CZP
+Successfuly created server SVR_APP3-W2-CZP
+Successfuly created server SVR_APP3-W3-CZP
+Successfuly created server SVR_APP3-W4-CZP
+Successfuly created lbmonitor MON_TEST_APP3
+Successfuly binded SVR_APP3-W1-CZP to SG_TEST_APP3_HTTP
+Successfuly binded SVR_APP3-W2-CZP to SG_TEST_APP3_HTTP
+Successfuly binded SVR_APP3-W3-CZP to SG_TEST_APP3_HTTP
+Successfuly binded SVR_APP3-W4-CZP to SG_TEST_APP3_HTTP
+Successfuly binded MON_TEST_APP3 to SG_TEST_APP3_HTTP
+Successfuly binded SG_TEST_APP3_HTTP to LBVS_TEST_APP3_HTTP
+Successfuly binded LBVS_TEST_APP3_HTTP to CSVS_TEST_APP3_HTTP
+Successfuly binded RWP_TEST_APP3_INS-X-FORW-FOR-IP to CSVS_TEST_APP3_HTTP
 Finish
 ```
 
@@ -113,42 +113,42 @@ Option "create" is specified but some resources already exist !
 ```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a u
 Password:
-Successfuly unbinded policyname RWP_TEST_APP2_INS-X-FORW-FOR-IP from CSVS_TEST_APP2_HTTP
-Successfuly unbinded lbvserver LBVS_TEST_APP2_HTTP from CSVS_TEST_APP2_HTTP
-Successfuly unbinded servicegroupname SG_TEST_APP2_HTTP from LBVS_TEST_APP2_HTTP
-Successfuly unbinded monitor_name MON_TEST_APP2 from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W1-CZP from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W2-CZP from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W3-CZP from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W4-CZP from SG_TEST_APP2_HTTP
-Successfuly deleted lbmonitor MON_TEST_APP2
-Successfuly deleted server SVR_APP2-W1-CZP
-Successfuly deleted server SVR_APP2-W2-CZP
-Successfuly deleted server SVR_APP2-W3-CZP
-Successfuly deleted server SVR_APP2-W4-CZP
-Successfuly deleted servicegroup SG_TEST_APP2_HTTP
-Successfuly deleted lbvserver LBVS_TEST_APP2_HTTP
-Successfuly deleted csvserver CSVS_TEST_APP2_HTTP
-Successfuly deleted rewritepolicy RWP_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly deleted rewriteaction RWA_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly created rewriteaction RWA_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly created rewritepolicy RWP_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly created csvserver CSVS_TEST_APP2_HTTP
-Successfuly created lbvserver LBVS_TEST_APP2_HTTP
-Successfuly created servicegroup SG_TEST_APP2_HTTP
-Successfuly created server SVR_APP2-W1-CZP
-Successfuly created server SVR_APP2-W2-CZP
-Successfuly created server SVR_APP2-W3-CZP
-Successfuly created server SVR_APP2-W4-CZP
-Successfuly created lbmonitor MON_TEST_APP2
-Successfuly binded SVR_APP2-W1-CZP to SG_TEST_APP2_HTTP
-Successfuly binded SVR_APP2-W2-CZP to SG_TEST_APP2_HTTP
-Successfuly binded SVR_APP2-W3-CZP to SG_TEST_APP2_HTTP
-Successfuly binded SVR_APP2-W4-CZP to SG_TEST_APP2_HTTP
-Successfuly binded MON_TEST_APP2 to SG_TEST_APP2_HTTP
-Successfuly binded SG_TEST_APP2_HTTP to LBVS_TEST_APP2_HTTP
-Successfuly binded LBVS_TEST_APP2_HTTP to CSVS_TEST_APP2_HTTP
-Successfuly binded RWP_TEST_APP2_INS-X-FORW-FOR-IP to CSVS_TEST_APP2_HTTP
+Successfuly unbinded policyname RWP_TEST_APP3_INS-X-FORW-FOR-IP from CSVS_TEST_APP3_HTTP
+Successfuly unbinded lbvserver LBVS_TEST_APP3_HTTP from CSVS_TEST_APP3_HTTP
+Successfuly unbinded servicegroupname SG_TEST_APP3_HTTP from LBVS_TEST_APP3_HTTP
+Successfuly unbinded monitor_name MON_TEST_APP3 from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W1-CZP from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W2-CZP from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W3-CZP from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W4-CZP from SG_TEST_APP3_HTTP
+Successfuly deleted lbmonitor MON_TEST_APP3
+Successfuly deleted server SVR_APP3-W1-CZP
+Successfuly deleted server SVR_APP3-W2-CZP
+Successfuly deleted server SVR_APP3-W3-CZP
+Successfuly deleted server SVR_APP3-W4-CZP
+Successfuly deleted servicegroup SG_TEST_APP3_HTTP
+Successfuly deleted lbvserver LBVS_TEST_APP3_HTTP
+Successfuly deleted csvserver CSVS_TEST_APP3_HTTP
+Successfuly deleted rewritepolicy RWP_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly deleted rewriteaction RWA_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly created rewriteaction RWA_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly created rewritepolicy RWP_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly created csvserver CSVS_TEST_APP3_HTTP
+Successfuly created lbvserver LBVS_TEST_APP3_HTTP
+Successfuly created servicegroup SG_TEST_APP3_HTTP
+Successfuly created server SVR_APP3-W1-CZP
+Successfuly created server SVR_APP3-W2-CZP
+Successfuly created server SVR_APP3-W3-CZP
+Successfuly created server SVR_APP3-W4-CZP
+Successfuly created lbmonitor MON_TEST_APP3
+Successfuly binded SVR_APP3-W1-CZP to SG_TEST_APP3_HTTP
+Successfuly binded SVR_APP3-W2-CZP to SG_TEST_APP3_HTTP
+Successfuly binded SVR_APP3-W3-CZP to SG_TEST_APP3_HTTP
+Successfuly binded SVR_APP3-W4-CZP to SG_TEST_APP3_HTTP
+Successfuly binded MON_TEST_APP3 to SG_TEST_APP3_HTTP
+Successfuly binded SG_TEST_APP3_HTTP to LBVS_TEST_APP3_HTTP
+Successfuly binded LBVS_TEST_APP3_HTTP to CSVS_TEST_APP3_HTTP
+Successfuly binded RWP_TEST_APP3_INS-X-FORW-FOR-IP to CSVS_TEST_APP3_HTTP
 Finish
 ```
 
@@ -156,24 +156,24 @@ Finish
 ```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a d
 Password:
-Successfuly unbinded policyname RWP_TEST_APP2_INS-X-FORW-FOR-IP from CSVS_TEST_APP2_HTTP
-Successfuly unbinded lbvserver LBVS_TEST_APP2_HTTP from CSVS_TEST_APP2_HTTP
-Successfuly unbinded servicegroupname SG_TEST_APP2_HTTP from LBVS_TEST_APP2_HTTP
-Successfuly unbinded monitor_name MON_TEST_APP2 from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W1-CZP from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W2-CZP from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W3-CZP from SG_TEST_APP2_HTTP
-Successfuly unbinded servername SVR_APP2-W4-CZP from SG_TEST_APP2_HTTP
-Successfuly deleted lbmonitor MON_TEST_APP2
-Successfuly deleted server SVR_APP2-W1-CZP
-Successfuly deleted server SVR_APP2-W2-CZP
-Successfuly deleted server SVR_APP2-W3-CZP
-Successfuly deleted server SVR_APP2-W4-CZP
-Successfuly deleted servicegroup SG_TEST_APP2_HTTP
-Successfuly deleted lbvserver LBVS_TEST_APP2_HTTP
-Successfuly deleted csvserver CSVS_TEST_APP2_HTTP
-Successfuly deleted rewritepolicy RWP_TEST_APP2_INS-X-FORW-FOR-IP
-Successfuly deleted rewriteaction RWA_TEST_APP2_INS-X-FORW-FOR-IP
+Successfuly unbinded policyname RWP_TEST_APP3_INS-X-FORW-FOR-IP from CSVS_TEST_APP3_HTTP
+Successfuly unbinded lbvserver LBVS_TEST_APP3_HTTP from CSVS_TEST_APP3_HTTP
+Successfuly unbinded servicegroupname SG_TEST_APP3_HTTP from LBVS_TEST_APP3_HTTP
+Successfuly unbinded monitor_name MON_TEST_APP3 from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W1-CZP from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W2-CZP from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W3-CZP from SG_TEST_APP3_HTTP
+Successfuly unbinded servername SVR_APP3-W4-CZP from SG_TEST_APP3_HTTP
+Successfuly deleted lbmonitor MON_TEST_APP3
+Successfuly deleted server SVR_APP3-W1-CZP
+Successfuly deleted server SVR_APP3-W2-CZP
+Successfuly deleted server SVR_APP3-W3-CZP
+Successfuly deleted server SVR_APP3-W4-CZP
+Successfuly deleted servicegroup SG_TEST_APP3_HTTP
+Successfuly deleted lbvserver LBVS_TEST_APP3_HTTP
+Successfuly deleted csvserver CSVS_TEST_APP3_HTTP
+Successfuly deleted rewritepolicy RWP_TEST_APP3_INS-X-FORW-FOR-IP
+Successfuly deleted rewriteaction RWA_TEST_APP3_INS-X-FORW-FOR-IP
 Finish
 ```
 
