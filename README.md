@@ -5,10 +5,17 @@
 
 Enables to maintain Netscaler configuration using YAML (or JSON) configuration files. Configuration files define configuration items (servers, monitors, LB vservers, CS vservers, ...) and their bindings. nsbcfg utility configure Netscaler using NITRO API according to configuration files.
 
+
 ### nsstat.py
+[Netscaler vserver statististics](nsstat.md)
+
+Prints statistics related to specific vserver (status, hit count,...)
 
 
 ### getcertbind.py
+[Netscaler certificate usage](getcertbind.md)
+
+Prints certificate and all vservers which is this certificate binded to.
 
 
 

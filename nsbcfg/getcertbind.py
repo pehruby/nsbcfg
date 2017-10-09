@@ -29,6 +29,7 @@ def main():
     -z,     --zeroip                    print servers with IP 0.0.0.0 (opt.)
     -i,     --ipaddr                    IP address of Netscaler
     -u,     --username                  username
+    -p,     --password                  password (opt.)
     -c,     --certname                  certificate name (opt.)
     '''
 
