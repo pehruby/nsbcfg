@@ -1,0 +1,7 @@
+---
+bindings:
+  filename:
+  - bindings.yml
+items:
+  filename:
+  - items.yml

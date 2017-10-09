@@ -1,0 +1,65 @@
+---
+
+lbmonitor:
+- monitorname: MON_TEST_APP2
+  type: HTTP
+  interval: 10
+  units3: SEC
+  resptimeout: 2
+  resptimeoutthresh: '0'
+  units4: SEC
+  retries: 3
+  failureretries: 0
+  alertretries: 0
+  successretries: 1
+  downtime: 30
+  units2: SEC
+  destport: 0
+  state: ENABLED
+  respcode:
+  - '200'
+  httprequest: HEAD /stat/test/webserver_test.html
+  customheaders: "Host:app2.domainname.cz\r\n"
+
+server:
+- name: SVR_APP2-W1-CZP
+  ipaddress: 192.168.16.204
+  comment: APP2
+- name: SVR_APP2-W2-CZP
+  ipaddress: 192.168.16.214
+  comment: APP2
+- name: SVR_APP2-W3-CZP
+  ipaddress: 192.168.16.224
+  comment: APP2
+- name: SVR_APP2-W4-CZP
+  ipaddress: 192.168.16.234
+  comment: APP2
+
+servicegroup:
+- servicegroupname: SG_TEST_APP2_HTTP
+  servicetype: HTTP
+
+lbvserver:
+- name: LBVS_TEST_APP2_HTTP
+  servicetype: HTTP
+  backupvserver: LBVS_FAILOVER_HTTP
+  persistencetype: SOURCEIP
+  timeout: 5
+  persistmask: 255.255.255.255
+
+csvserver:
+- name: CSVS_TEST_APP2_HTTP
+  ipv46: 10.1.2.25
+  port: 80
+  servicetype: HTTP
+
+rewriteaction:
+- name: RWA_TEST_APP2_INS-X-FORW-FOR-IP
+  type: insert_http_header
+  target: x-forwarded-for
+  stringbuilderexpr: CLIENT.IP.SRC
+
+rewritepolicy:
+- name: RWP_TEST_APP2_INS-X-FORW-FOR-IP
+  rule: HTTP.REQ.HEADER("x-forwarded-for").EXISTS.NOT
+  action: RWA_TEST_APP2_INS-X-FORW-FOR-IP

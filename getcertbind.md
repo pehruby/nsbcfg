@@ -2,7 +2,7 @@
 
 Prints certificate and all vservers which is this certificate binded to.
 
-If certificate is not specified, all certificates are listed.
+If the certificate is not specified, all certificates are listed.
 
 
 ### Command line parameters
