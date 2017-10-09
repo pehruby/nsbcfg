@@ -78,7 +78,7 @@ Resource and property names follow the ones used in [Netscaler NITRO API](http:/
 ### Examples of use
 
 #### Create NS application environment
-
+```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a c
 Password:
 Successfuly created rewriteaction RWA_TEST_APP2_INS-X-FORW-FOR-IP
@@ -100,13 +100,17 @@ Successfuly binded SG_TEST_APP2_HTTP to LBVS_TEST_APP2_HTTP
 Successfuly binded LBVS_TEST_APP2_HTTP to CSVS_TEST_APP2_HTTP
 Successfuly binded RWP_TEST_APP2_INS-X-FORW-FOR-IP to CSVS_TEST_APP2_HTTP
 Finish
+```
 
 #### Attemt to create already existing NS application environment 
+```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a c
 Password:
 Option "create" is specified but some resources already exist !
+```
 
 #### Update (delete and create again) NS application environment
+```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a u
 Password:
 Successfuly unbinded policyname RWP_TEST_APP2_INS-X-FORW-FOR-IP from CSVS_TEST_APP2_HTTP
@@ -146,10 +150,10 @@ Successfuly binded SG_TEST_APP2_HTTP to LBVS_TEST_APP2_HTTP
 Successfuly binded LBVS_TEST_APP2_HTTP to CSVS_TEST_APP2_HTTP
 Successfuly binded RWP_TEST_APP2_INS-X-FORW-FOR-IP to CSVS_TEST_APP2_HTTP
 Finish
-
+```
 
 #### Delete NS application environment
-
+```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a d
 Password:
 Successfuly unbinded policyname RWP_TEST_APP2_INS-X-FORW-FOR-IP from CSVS_TEST_APP2_HTTP
@@ -171,6 +175,7 @@ Successfuly deleted csvserver CSVS_TEST_APP2_HTTP
 Successfuly deleted rewritepolicy RWP_TEST_APP2_INS-X-FORW-FOR-IP
 Successfuly deleted rewriteaction RWA_TEST_APP2_INS-X-FORW-FOR-IP
 Finish
+```
 
 
 
