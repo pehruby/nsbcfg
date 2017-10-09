@@ -102,7 +102,7 @@ Successfuly binded RWP_TEST_APP2_INS-X-FORW-FOR-IP to CSVS_TEST_APP2_HTTP
 Finish
 ```
 
-#### Attemt to create already existing NS application environment 
+#### Attempt to create already existing NS application environment 
 ```
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a c
 Password:
