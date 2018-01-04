@@ -1,4 +1,5 @@
 # nsbcfg
+
 Netscaler batch configuration based on YAML (or JSON) configuration files
 
 ## Supported configuration resources and bindings:
