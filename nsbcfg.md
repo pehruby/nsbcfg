@@ -23,6 +23,7 @@ Netscaler batch configuration based on YAML (or JSON) configuration files
     * csvserver -> lbvserver
     * csvserver -> responderpolicy
     * csvserver -> rewritepolicy
+    * csvserver -> transformpolicy
 * Load Balancing
   * Resources
     * lbgroup
@@ -34,6 +35,7 @@ Netscaler batch configuration based on YAML (or JSON) configuration files
     * lbvserver -> rewritepolicy
     * lbvserver -> service
     * lbvserver -> servicegroup
+    * lbvserver -> transformpolicy
 * Responder
   * Resources
     * responderaction
@@ -42,6 +44,11 @@ Netscaler batch configuration based on YAML (or JSON) configuration files
   * Resources
     * rewriteaction
     * rewritepolicy
+* Transform
+  * Resources
+    * transformaction
+    * transformpolicy
+    * transformprofile
 * SSL
   * Resources
     * sslprofile

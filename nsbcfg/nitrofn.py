@@ -50,9 +50,13 @@ resourcetype_name_dict = {'server':'name', \
                             "service":"name",\
                             "lbgroup":"name",\
                             "sslservice":"servicename",\
-                            "sslvserver":"vservername"}    # name of item which contains name of specific type
+                            "sslvserver":"vservername", \
+                            "transformprofile":"name", \
+                            "transformaction":"name", \
+                            "transformpolicy":"name"}    # name of item which contains name of specific type
 resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "csvserver", \
-                    "lbvserver", "servicegroup", "server", "lbmonitor", "csaction", "cspolicy", "service", "lbgroup", "sslservice"]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                    "lbvserver", "servicegroup", "server", "lbmonitor", "csaction", "cspolicy", "service", "lbgroup", "sslservice", \
+                    "transformprofile", "transformaction", "transformpolicy" ]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
 dont_process_at_beg_list = ["lbgroup", "sslservice"]      # don't create this resources at the beginning
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
@@ -72,10 +76,12 @@ general_parametr_name_dict = {"servicegroup_lbmonitor_binding":"monitor_name",\
                                 "lbvserver_service_binding":"servicename",\
                                 "lbvserver_responderpolicy_binding":"policyname",\
                                 "lbvserver_rewritepolicy_binding":"policyname",\
+                                "lbvserver_transformpolicy_binding":"policyname",\
                                 "csvserver_lbvserver_binding":"lbvserver",\
                                 "csvserver_cspolicy_binding":"policyname",\
                                 "csvserver_rewritepolicy_binding":"policyname",\
                                 "csvserver_responderpolicy_binding":"policyname",\
+                                "csvserver_transformpolicy_binding":"policyname",\
                                 "sslvserver_ecccurve_binding":"ecccurvename",\
                                 "sslvserver_sslcertkey_binding":"certkeyname",\
                                 "sslvserver_sslcipher_binding":"ciphername",\
