@@ -424,7 +424,7 @@ def print_stat_sgmember_list(sg_members_list):
     print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Rqsts', 'Request B', 'Response B', 'Act conn'))
     print('{:-<154}'.format(''))
     for sgm in sg_members_list:
-        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], trim_string(sgm['totalrequestbytes'], 6), trim_string(sgm['totalrequestbytes'], 10), trim_string(sgm['totalresponsebytes'], 10), sgm['curclntconnections']))
+        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], trim_string(sgm['totalrequests'], 6), trim_string(sgm['totalrequestbytes'], 10), trim_string(sgm['totalresponsebytes'], 10), sgm['curclntconnections']))
     print('{:-<154}'.format(''))
 
 
