@@ -3,6 +3,7 @@
 import sys
 import getpass
 import getopt
+import os.path
 
 import nitrofn
 
@@ -84,7 +85,11 @@ def main():
         sys.exit(2)
 
     if config_file:
-        nitrofn.load_cfgs2(config_file)
+        ext = os.path.splitext(config_file)[1]
+        if ext == 'yml' or ext == 'yaml':
+            nitrofn.load_cfgs2(config_file)
+        else:
+            nitrofn.load_cfgs2(config_file, 'JSON') # try JSON
         nitrofn.get_and_print_stat_all_cfgfile_simple()
 
 
