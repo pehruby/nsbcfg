@@ -714,8 +714,11 @@ def create_update(body, action='create'):                  # it creates/updates 
                 create_update_delete_resource(typ, name, action_body, 'update')
                 # response = requests.put(nitro_config_url + '/' + typ + '/'+name, headers=json_header, data=json.dumps(action_body), verify=False, cookies=cookie)
             elif action == 'delete' and exists:
-                # print("Deleting", typ, name)
-                create_update_delete_resource(typ, name, action_body)
+                if not is_server_binded(name):      # if server is not binded to any resource (servicegroup, service)
+                    # print("Deleting", typ, name)
+                    create_update_delete_resource(typ, name, action_body)
+                else:
+                    print("Server", name, "is binded to some resources and is not marked as 'shared' !!! Server was not deleted")
 
     return True
 
