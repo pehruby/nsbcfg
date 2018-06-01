@@ -86,7 +86,7 @@ def main():
 
     if config_file:
         ext = os.path.splitext(config_file)[1]
-        if ext == 'yml' or ext == 'yaml':
+        if ext == '.yml' or ext == '.yaml':
             nitrofn.load_cfgs2(config_file)
         else:
             nitrofn.load_cfgs2(config_file, 'JSON') # try JSON
