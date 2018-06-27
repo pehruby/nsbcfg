@@ -392,14 +392,14 @@ def print_stat_services_list(services_list):
     ''' Prints statistics collected in list of services
     '''
 
-    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>7}{:>12}{:>12}{:>10}'
-    print('{:-<139}'.format(''))
+    outformat = '{:50}{:16}{:>6} {:10}{:10}{:>7}{:>7}{:>8}{:>12}{:>12}{:>10}'
+    print('{:-<169}'.format(''))
     print("SERVICES")
-    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Rqsts', 'Request B', 'Response B', 'Act conn'))
-    print('{:-<139}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Rqsts', 'Rspns', 'RqDelta', 'Request B', 'Response B', 'Act conn'))
+    print('{:-<169}'.format(''))
     for service in services_list:
-        print(outformat.format(service['name'], service['primaryipaddress'], service['primaryport'], service['servicetype'], service['state'], trim_string(service['totalrequests'], 6), trim_string(service['totalrequestbytes'], 10), trim_string(service['totalresponsebytes'], 10), service['curclntconnections']))
-    print('{:-<139}'.format(''))
+        print(outformat.format(service['name'], service['primaryipaddress'], service['primaryport'], service['servicetype'], service['state'], trim_string(service['totalrequests'], 6), trim_string(service['totalresponses'], 6), trim_string(str(int(service['totalrequests'])-int(service['totalresponses'])),6), trim_string(service['totalrequestbytes'], 10), trim_string(service['totalresponsebytes'], 10), service['curclntconnections']))
+    print('{:-<169}'.format(''))
 
 def print_stat_sg_list(sg_list):
     ''' Prints statistics collected in list of service groups
@@ -418,14 +418,14 @@ def print_stat_sgmember_list(sg_members_list):
     ''' Prints statistics collected in list of service group members
     '''
 
-    outformat = '{:70}{:16}{:>6} {:10}{:10}{:>7}{:>12}{:>12}{:>10}'
-    print('{:-<154}'.format(''))
+    outformat = '{:70}{:16}{:>6} {:10}{:10}{:>7}{:>7}{:>8}{:>12}{:>12}{:>10}'
+    print('{:-<169}'.format(''))
     print("SERVICES")
-    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Rqsts', 'Request B', 'Response B', 'Act conn'))
-    print('{:-<154}'.format(''))
+    print(outformat.format('Name', 'IP', 'Port', 'Type', 'State', 'Rqsts', 'Rspns', 'RqDelta', 'Request B', 'Response B', 'Act conn'))
+    print('{:-<169}'.format(''))
     for sgm in sg_members_list:
-        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], trim_string(sgm['totalrequests'], 6), trim_string(sgm['totalrequestbytes'], 10), trim_string(sgm['totalresponsebytes'], 10), sgm['curclntconnections']))
-    print('{:-<154}'.format(''))
+        print(outformat.format(sgm['servicegroupname'].replace('?', '|'), sgm['primaryipaddress'], sgm['primaryport'], sgm['servicetype'], sgm['state'], trim_string(sgm['totalrequests'], 6),trim_string(sgm['totalresponses'], 6), trim_string(str(int(sgm['totalrequests'])-int(sgm['totalresponses'])),6), trim_string(sgm['totalrequestbytes'], 10), trim_string(sgm['totalresponsebytes'], 10), sgm['curclntconnections']))
+    print('{:-<169}'.format(''))
 
 
 def trim_string(string, length, where='left'):
@@ -754,20 +754,21 @@ def check_if_items_exist():
         for item in cfg_list:
             typ = list(item.keys())[0]
             res_type_name = resourcetype_name_dict[typ]   # what is the name of "name" field in this type ?
-            for subitem in item[typ]:             # go through every item of specific type
-                # name=str(body[typ][0]['name'])          #  resource name
-                name = str(subitem[res_type_name])          #  resource name
-                if typ == 'server':
-                    if 'shared' in subitem:
-                        if subitem['shared'] == 'YES' or subitem['shared'] == True:      # subitem is 'shared'
-                            if resource_exist(typ, name):
-                                debug_print("Resource type:", typ, "name:", name, "exists", "but is shared") 
-                                continue        # process next subitem
-                action_body = {}
-                action_body[typ] = item                   #body with one item
-                if resource_exist(typ, name):
-                    debug_print("Resource type:", typ, "name:", name, "exists")
-                    exists = True
+            if item[typ]:           # is there any item defined under specific typ? i.e. server, csvserver, ...
+                for subitem in item[typ]:             # go through every item of specific type
+                    # name=str(body[typ][0]['name'])          #  resource name
+                    name = str(subitem[res_type_name])          #  resource name
+                    if typ == 'server':
+                        if 'shared' in subitem:
+                            if subitem['shared'] == 'YES' or subitem['shared'] == True:      # subitem is 'shared'
+                                if resource_exist(typ, name):
+                                    debug_print("Resource type:", typ, "name:", name, "exists", "but is shared") 
+                                    continue        # process next subitem
+                    action_body = {}
+                    action_body[typ] = item                   #body with one item
+                    if resource_exist(typ, name):
+                        debug_print("Resource type:", typ, "name:", name, "exists")
+                        exists = True
     return exists
 
 
