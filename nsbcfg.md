@@ -63,7 +63,6 @@ Support for other resources and bindings can be easily added.
 
 Resource and property names follow the ones used in [Netscaler NITRO API](http://docs.citrix.com/en-us/netscaler/11/nitro-api.html)
 
-
 ## Command line parameters
 
     Usage: nsbcfg.py [OPTIONS]
@@ -76,18 +75,26 @@ Resource and property names follow the ones used in [Netscaler NITRO API](http:/
     -c,     --cfgfile                   default nsconfig[.yml|.json]
     -t,     --filetype                  type of the config file (yaml - default, json),
 
-
 ## Usage rules
 
 * All resource names must be unique, i.e resource name specified in one configuration must not be used in other configuration. Exception is server resource which contains property _shared_ set to _True_ or _'YES'_. Such resource name can be present in several configuration files
 * All resource property names follow the naming scheme described in Netscaler NITRO API. The only exception is server property _shared_ which is not defined in NITRO and is solely used in this tool for purposes specified above
+* If backupvserver is specified in lbvserver definition, the lbvserver definition of backup lbverver must be specified before lbvserver where the backupvserver is used.
 
+```yaml
+lbvserver:
+- name: LBVS_TEST_BKP_HTTP
+  servicetype: HTTP
+- name: LBVS_TEST_HTTP
+  servicetype: HTTP
+  backupvserver: LBVS_TEST_BKP_HTTP
+```
 
 ## Examples of use
 
 ### Create NS application environment
 
-```
+```text
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a c
 Password:
 Successfuly created rewriteaction RWA_TEST_APP3_INS-X-FORW-FOR-IP
@@ -113,7 +120,7 @@ Finish
 
 ### Attempt to create already existing NS application environment
 
-```
+```text
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a c
 Password:
 Option "create" is specified but some resources already exist !
@@ -121,7 +128,7 @@ Option "create" is specified but some resources already exist !
 
 ### Update (delete and create again) NS application environment
 
-```
+```text
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a u
 Password:
 Successfuly unbinded policyname RWP_TEST_APP3_INS-X-FORW-FOR-IP from CSVS_TEST_APP3_HTTP
@@ -165,7 +172,7 @@ Finish
 
 ### Delete NS application environment
 
-```
+```text
 PS C:nsbcfg> py -3 .\nsbcfg\nsbcfg.py -i 10.1.2.3 -u username -c .\config_examples\APP3\nsconfig.yml -a d
 Password:
 Successfuly unbinded policyname RWP_TEST_APP3_INS-X-FORW-FOR-IP from CSVS_TEST_APP3_HTTP
