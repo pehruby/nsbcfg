@@ -1,5 +1,33 @@
 # Netscaler configuration and monitoring utilities
 
+## Installation
+
+Clone github repository
+
+```text
+git clone https://github.com/pehruby/nsbcfg
+```
+
+Install virtual environment and activate it (optional)
+
+```text
+virtualenv nsbcfg --no-site-packages
+
+cd nsbcfg
+Scripts\activate
+```
+
+Install required packages
+
+```text
+pip install -r requirements.txt
+
+or
+
+py -3 -m pip install -r requirements.txt
+```
+
+
 ### nsbcfg.py
 [Netscaler batch configuration](nsbcfg.md)
 
