@@ -7,6 +7,22 @@ import getopt
 import nitrofn
 
 
+def print_backends(ip, port):
+    
+    print_format = '{:10}{:50}{:4}{:15}'
+    resdict = nitrofn.load_resource_name_tree_under_ip_port(ip, port)
+    #stat = nitrofn.get_stat_all_dict(resdict)
+    for item in resdict['servicegroup']:
+        svrlist = nitrofn.get_svr_list_under_sg(item)
+        for srv in svrlist:
+            print(print_format.format('backend', nitrofn.trim_string(srv['servername'], 50, 'right'), 'IP:', srv['ip']+':'+str(srv['port'])))
+
+    for item in resdict['service']:
+        svrlist = nitrofn.get_server_for_svc(item)
+        for srv in svrlist:
+            print(print_format.format('backend', nitrofn.trim_string(srv['servername'], 50, 'right'), 'IP:', srv['ip']+':'+str(srv['port'])))
+    print('')
+
 def main():
     ''' Main
     '''
@@ -104,12 +120,14 @@ def main():
             if nitrofn.resource_exist("csvserver", binding['servername']):           # is it csvserver?
                 vserver = nitrofn.get_nitro_resources('csvserver', binding['servername'])
                 if (vserver[0]['ipv46'] == '0.0.0.0' and zeroip) or vserver[0]['ipv46'] != '0.0.0.0':   # print server with IP 0.0.0.0 ?
-                    print(print_format.format('csvserver', nitrofn.trim_string(vserver[0]['name'], 50, 'right'), 'IP:', vserver[0]['ipv46']))
+                    print(print_format.format('csvserver', nitrofn.trim_string(vserver[0]['name'], 50, 'right'), 'IP:', vserver[0]['ipv46']+':'+str(vserver[0]['port'])))
+                    print_backends(vserver[0]['ipv46'], str(vserver[0]['port']))
                     isone = True
             elif nitrofn.resource_exist("lbvserver", binding['servername']):
                 vserver = nitrofn.get_nitro_resources('lbvserver', binding['servername'])     # is it lbvserver?
                 if (vserver[0]['ipv46'] == '0.0.0.0' and zeroip) or vserver[0]['ipv46'] != '0.0.0.0':   # print server with IP 0.0.0.0 ?
-                    print(print_format.format('lbvserver', nitrofn.trim_string(vserver[0]['name'], 50, 'right'), 'IP:', vserver[0]['ipv46']))
+                    print(print_format.format('lbvserver', nitrofn.trim_string(vserver[0]['name'], 50, 'right'), 'IP:', vserver[0]['ipv46']+':'+str(vserver[0]['port'])))
+                    print_backends(vserver[0]['ipv46'], str(vserver[0]['port']))
                     isone = True
         if not isone:
             print("... nothing")            # no server binded to specific certificate

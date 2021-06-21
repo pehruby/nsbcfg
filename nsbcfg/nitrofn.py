@@ -187,6 +187,37 @@ def get_sg_list_under_lbvs(lbvs):
                 sglist.append(sg)
     return sglist
 
+def get_svr_list_under_sg(sg):
+
+    svr_list = []
+    resp = get_nitro_resources('servicegroup_binding', sg)
+
+    for sgbind in resp:
+        if 'servicegroup_servicegroupmember_binding' in sgbind:
+            for onesvrbind in sgbind['servicegroup_servicegroupmember_binding']:
+                svr_list.append({'ip' : onesvrbind['ip'],
+                                'port' : onesvrbind['port'],
+                                'servername' : onesvrbind['servername']}
+                                )
+    return svr_list
+
+def get_server_for_svc(svc):
+
+    svr_list = []
+    resp = get_nitro_resources('service', svc)
+
+    if 'servername' in resp[0]:
+        svr_resp = get_nitro_resources('server', resp[0]['servername'])
+        svr_list.append({'ip' : svr_resp[0]['ipaddress'],
+                                'port' : resp[0]['port'],
+                                'servername' : resp[0]['servername']}
+                                )
+    return svr_list
+
+
+
+
+
 def load_resource_name_tree_under_ip_port(ip, port=0, tecky=False):
     ''' Loads names of resources "under" specific IP addres (and port). If tecky, points are printed to stdout
     '''
