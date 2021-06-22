@@ -15,6 +15,7 @@ If the certificate is not specified, all certificates are listed.
     -u,     --username                  username
     -p,     --password                  password (opt.)
     -c,     --certname                  certificate name (opt.)
+    -b,     --backends                  print also backend servers (opt.)
 
 
 

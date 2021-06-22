@@ -40,7 +40,8 @@ def main():
     zeroip = False              # print servers with IP 0.0.0.0 ?
     cert_name = ''
     cert_list = []              # list of certificates
-    cert_exp_dict = {}          # certificate expiration days 
+    cert_exp_dict = {}          # certificate expiration days
+    backends = False
 
     usage_str = '''
     Prints vservers (with IP addresses) binded to SSL certificate(s)
@@ -56,7 +57,7 @@ def main():
     '''
 
     try:
-        opts, args = getopt.getopt(argv, "dhzp:u:i:c:", ["debug", "help", "zeroip" "password=", "username=", "ipaddr=", "certname="]) # : require argument
+        opts, args = getopt.getopt(argv, "dhzp:u:i:c:b", ["debug", "help", "zeroip", "password=", "username=", "ipaddr=", "certname=", "backends"]) # : require argument
     except getopt.GetoptError:
         print(usage_str)
         sys.exit(2)
@@ -80,7 +81,7 @@ def main():
         elif opt in ("-c", "--certname"):
             cert_name = arg
         elif opt in ("-b", "--backends"):
-            backends = arg
+            backends = True
 
 
 
