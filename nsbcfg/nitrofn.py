@@ -218,6 +218,32 @@ def get_server_for_svc(svc):
 
 
 
+def load_resource_name_tree_under_server(servername):
+    ''' Loads names of resources "under" specific csvserver or lbvserver name.
+    '''
+    
+    resourcesdict = {'csvserver':[], 'lbvserver':[], 'service':[], 'servicegroup':[]}
+
+    if resource_exist('csvserver', servername):
+        resourcesdict['csvserver'].append(servername)
+        lbvslist = get_lbvs_list_under_csvs(servername)
+        for lbvservername in lbvslist:
+            resourcesdict['lbvserver'].append(lbvservername)
+    elif resource_exist('lbvserver', servername):
+        resourcesdict['lbvserver'].append(servername)
+    else:
+        return resourcesdict
+    for lbvsname in resourcesdict['lbvserver']:
+ 
+        svclist = get_svc_list_under_lbvs(lbvsname)
+        for svcname in svclist:
+            resourcesdict['service'].append(svcname)
+        sglist = get_sg_list_under_lbvs(lbvsname)
+        for sgname in sglist:
+            resourcesdict['servicegroup'].append(sgname)
+    return resourcesdict
+
+
 def load_resource_name_tree_under_ip_port(ip, port=0, tecky=False):
     ''' Loads names of resources "under" specific IP addres (and port). If tecky, points are printed to stdout
     '''
