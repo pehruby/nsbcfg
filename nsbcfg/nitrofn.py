@@ -56,7 +56,7 @@ resourcetype_name_dict = {'server':'name', \
                             "transformpolicy":"name"}    # name of item which contains name of specific type
 resourcetype_list = ["rewriteaction", "rewritepolicy", "responderaction", "responderpolicy", "sslprofile", "csvserver", \
                     "lbvserver", "servicegroup", "server", "lbmonitor", "csaction", "cspolicy", "service", "lbgroup", "sslservice", \
-                    "transformprofile", "transformaction", "transformpolicy" ]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
+                    "sslvserver", "transformprofile", "transformaction", "transformpolicy" ]  #order in which resource types are created, i.e rewriteaction must be created before rewritepolicy
 
 dont_process_at_beg_list = ["lbgroup", "sslservice"]      # don't create this resources at the beginning
 update_body_del_dict = {"servicegroup":["servicetype", "td"], "lbvserver":["servicetype", "port", "td"], \
@@ -560,6 +560,9 @@ def create_update_delete_resource(restype, name, body, action='delete'):
             debug_print("Deleting", restype, name)
             if restype == 'lbmonitor':      #monitor needs "type" args in delete method
                 urlarg = "?args=type:"+str(body['lbmonitor']['type'])
+            if restype == 'sslvserver':
+                # sslvserver doesn't have DELETE action
+                return True
             response = requests.delete(nitro_config_url + '/' + restype + '/'+ name + urlarg, headers=json_header, verify=False, cookies=cookie)
     except (requests.ConnectionError, requests.ConnectTimeout):
         print("Connection error")
@@ -650,7 +653,7 @@ def load_cfgs2(config_file, file_type='YAML'):
                     config = json.loads(data_file.read())
                 else:
                     if file_type == 'YAML':
-                        config = yaml.load(data_file.read())
+                        config = yaml.safe_load(data_file.read())
         except IOError:
             print("Unable to read the file", config_file)
             exit(1)
@@ -670,7 +673,7 @@ def load_cfgs2(config_file, file_type='YAML'):
                     if file_type == 'JSON':
                         resource = json.loads(data_file.read())
                     elif file_type == 'YAML':
-                        resource = yaml.load(data_file.read())
+                        resource = yaml.safe_load(data_file.read())
                     debug_print("File", filename, "loaded")
             except (ValueError, yaml.scanner.ScannerError):
                 print("Unable to process the file", filename, ", syntax error?")
