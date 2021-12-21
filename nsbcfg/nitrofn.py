@@ -682,7 +682,12 @@ def load_cfgs2(config_file, file_type='YAML'):
                 print("Unable to read the file", filename)
                 exit(1)
             if section == 'bindings':
-                for key in list(resource.keys()):           # crashes when no keys in resource !!!
+                try:
+                    keylist = list(resource.keys())
+                except AttributeError:
+                    keylist = []
+                    print('No keys in bindings file')
+                for key in keylist:           # crashes when no keys in resource !!!
                     # if name of item which we are going to bind to is not specified add it from item which we are going to bind to
                     binded_res = key.split("_binding")[0]       # binded_res = substring before _binding (i.e servicegroup, ...)
                     res_type_name = resourcetype_name_dict[binded_res]   # name of the item which contains resource name
@@ -763,6 +768,20 @@ def create_update(body, action='create'):                  # it creates/updates 
                     create_update_delete_resource(typ, name, action_body, 'delete')    # delele it
                 else:
                     print("Shared server", name, "is binded to some resources and was not deleted")
+        elif typ == 'transformaction' and action == 'create':
+            # transformaction is created in two steps, POST and PUT
+            # create body for POST action
+            trbody = {'transformaction': {}}
+            trbody['transformaction']['name'] = action_body['transformaction']['name']
+            trbody['transformaction']['profilename'] = action_body['transformaction']['profilename']
+            trbody['transformaction']['priority'] = action_body['transformaction']['priority']
+            # POST
+            create_update_delete_resource(typ, name, trbody, 'create')
+            if 'profilename' in action_body['transformaction']:
+                del action_body['transformaction']['profilename']
+            #PUT
+            create_update_delete_resource(typ, name, action_body, 'update')
+
         else:           # process other resources than shared server
             if action == 'create' and not exists:
                 #print("Creating", typ, name)
